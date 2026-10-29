@@ -14,7 +14,7 @@ telemetry. Files never leave the device.
 | Platform | Android 12+ (minSdk 31, targetSdk 35), arm64 / armv7 / x86_64 |
 | Stack | Kotlin, Jetpack Compose (Material 3), Room + SQLite FTS4, WorkManager |
 | Search model | [EmbeddingGemma 2](https://huggingface.co/litert-community/embeddinggemma-2-740m-litert-lm) (740M, LiteRT-LM via MediaPipe), 485 MB, optional download |
-| Distribution | Sideloaded APK, not on the Play Store |
+| Download | **[GitHub Releases](https://github.com/NavaneethVijay/filer/releases)** (free, sideloaded APK) |
 
 ## Features
 
@@ -98,18 +98,30 @@ New plugins follow the same pattern: an `AiPlugin` entry with its model files an
 
 ## Install
 
-### On a phone (APK)
+### 1. Download the APK
 
-1. Download the latest `arm64-v8a` APK from the [Releases](https://github.com/NavaneethVijay/filer/releases) page (almost every current phone is arm64; use `armeabi-v7a` for
-   older 32-bit phones).
-2. Open it on the phone and allow *Install unknown apps* for your browser or file manager when
-   asked, or from a computer: `adb install -r app-arm64-v8a-release.apk`.
-3. Open Filer and grant **All files access** (needed to browse and index the whole phone).
-4. Optional: in Browse or Settings, tap **Turn on** smart search to download the 485 MB model
-   (Wi-Fi recommended), then pick the folders to search by meaning.
+Download the latest release from **[GitHub Releases](https://github.com/NavaneethVijay/filer/releases)**:
 
-Updates install over the old version and keep your index, as long as they are signed with the same
-key. Uninstalling deletes the downloaded model and the index.
+| File | Target Devices | Notes |
+| :--- | :--- | :--- |
+| **`Filer-*-arm64-v8a.apk`** | Modern 64-bit phones | **Recommended** — covers virtually all Android phones from the past 7+ years (Pixel, Samsung, OnePlus, Xiaomi…) |
+| `Filer-*-armeabi-v7a.apk` | Older 32-bit phones | For legacy Android hardware |
+| `Filer-*-x86_64.apk` | Emulators / PCs | For Android Studio emulators and Chromebooks |
+
+### 2. Install on Android
+
+1. **Download**: Open the **[Releases](https://github.com/NavaneethVijay/filer/releases)** page on your Android phone and download the `arm64-v8a` APK file.
+2. **Allow installation**: Tap the downloaded file in your browser or Downloads folder. If prompted with *"For your security, your phone is not allowed to install unknown apps from this source"*, tap **Settings** and turn on **Allow from this source**.
+3. **Install & Grant permission**: Tap **Install**. Open Filer and grant **All files access** (Manage External Storage) when prompted. This allows Filer to browse your files and index them locally.
+4. *(Optional)* **Enable Smart Search**: On the home screen or in Settings, tap **Turn on** smart search to download the offline search model (EmbeddingGemma 2, 485 MB, Wi-Fi recommended), then choose which folders to index.
+
+> [!TIP]
+> **Updating**: Future releases install directly over existing versions without losing your downloaded models, settings, or search index. (Uninstalling the app will delete the model and index).
+
+Alternatively, install from a computer using ADB:
+```sh
+adb install -r Filer-v1.0.0-arm64-v8a.apk
+```
 
 ### Build from source
 
