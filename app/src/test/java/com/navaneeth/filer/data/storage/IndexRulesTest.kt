@@ -45,7 +45,7 @@ class IndexRulesTest {
 
     @Test
     fun imagesAreIndexedWhenAboveMinBytes() {
-        val minBytes = 20 * 1024L
+        val minBytes = 35 * 1024L
         assertEquals(IndexKind.PHOTOS, IndexRules.kindOf("photo.jpg", "image/jpeg", minBytes))
         assertEquals(IndexKind.PHOTOS, IndexRules.kindOf("screenshot.png", "image/png", minBytes + 100))
         assertNull(IndexRules.kindOf("tiny_icon.png", "image/png", minBytes - 1))

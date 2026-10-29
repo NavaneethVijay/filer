@@ -89,7 +89,7 @@ object IndexRules {
     )
 
     /** Icons, stickers and thumbnails are tiny; skipping them saves many model runs. */
-    private const val MIN_IMAGE_BYTES = 20 * 1024L
+    private const val MIN_IMAGE_BYTES = 35 * 1024L
 
     /** Secrets are never read, even inside a smart-search folder. */
     private val sensitiveExtensions = setOf("pem", "key", "p12", "pfx", "keystore", "jks", "kdbx", "gpg", "asc", "ovpn")

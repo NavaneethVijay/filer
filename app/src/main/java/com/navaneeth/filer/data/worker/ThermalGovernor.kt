@@ -68,12 +68,12 @@ class ThermalGovernor(private val context: Context) {
         val headroom = headroom()
         val curStatus = status()
         val rest = when {
-            curStatus >= PowerManager.THERMAL_STATUS_MODERATE || headroom >= 0.85f -> 2_500L
-            curStatus >= PowerManager.THERMAL_STATUS_LIGHT || headroom >= 0.70f -> 400L
+            curStatus >= PowerManager.THERMAL_STATUS_MODERATE || headroom >= 0.85f -> 500L
+            curStatus >= PowerManager.THERMAL_STATUS_LIGHT || headroom >= 0.70f -> 150L
             else -> 0L
         }
 
-        _thermalMetrics.value = sampleMetrics(isThrottled = throttled || rest >= 2_000L)
+        _thermalMetrics.value = sampleMetrics(isThrottled = throttled || rest >= 400L)
         if (rest > 0) delay(rest)
         return throttled
     }

@@ -680,28 +680,10 @@ class IndexRepository(private val context: Context) {
                     outcome = processSingleFile(file, decoded, useMac)
                     if (outcome is FileVectors.Ready) {
                         embeddedItems += outcome.embeddings.size
-                        val contentHash = ContentHasher.computeFastHash(File(Uri.parse(file.uri).path!!), file.sizeBytes)
-                            .ifEmpty { null }
-                        fileDao.updateFileStatus(
-                            fileId = file.id,
-                            status = IndexStatus.INDEXED,
-                            timestamp = System.currentTimeMillis(),
-                            modelVersion = embedder.activeModelVersion,
-                            contentHash = contentHash
-                        )
                         // Re-embedding replaced all its passages: the plugins' text goes back in below.
                         Uri.parse(file.uri).path?.let { pluginDao.markUnindexed(it) }
                         batchHasChanges = true
                         if (useMac) macWaitedMs = 0L
-
-                        telemetryDao.logActivity(
-                            ActivityLogEntity(
-                                action = "INDEX_FILE",
-                                fileUri = file.uri,
-                                fileName = file.displayName,
-                                details = "Successfully embedded (${file.sizeBytes / 1024} KB)"
-                            )
-                        )
                     }
                 } catch (e: CancellationException) {
                     throw e
@@ -755,7 +737,7 @@ class IndexRepository(private val context: Context) {
                 // Brief cooperative yield between files to keep UI responsive (the phone's model
                 // isn't running when the Mac is, so there's nothing to cool down between files).
                 yield()
-                if (!useMac) delay(30L)
+                if (!useMac) delay(10L)
             }
             prefetch?.second?.cancel()
 
@@ -900,6 +882,7 @@ class IndexRepository(private val context: Context) {
             if (result !is FileVectors.Ready) return result
             if (!IndexingPolicy.canSave(expected = 1, result.embeddings)) return FileVectors.NoVector
             val embedding = result.embeddings.single()
+            val contentHash = uri.path?.let { ContentHasher.computeFastHash(File(it), file.sizeBytes).ifEmpty { null } }
             db.withTransaction {
                 chunkDao.deleteChunksForFile(file.id)
                 embeddingDao.deleteForFile(file.id)
@@ -914,6 +897,13 @@ class IndexRepository(private val context: Context) {
                         )
                     )
                 )
+                fileDao.updateFileStatus(
+                    fileId = file.id,
+                    status = IndexStatus.INDEXED,
+                    timestamp = System.currentTimeMillis(),
+                    modelVersion = embedder.activeModelVersion,
+                    contentHash = contentHash
+                )
             }
             return result
         } else {
@@ -925,15 +915,19 @@ class IndexRepository(private val context: Context) {
             }
             // All of a file's passages in one go (one request when the Mac runs the model).
             val toEmbed = chunks.withIndex().filter { it.value.embed }
-            if (useMac && toEmbed.isNotEmpty()) thermal.awaitCapacity(routineRests = false)
+            if (toEmbed.isNotEmpty()) thermal.awaitCapacity(routineRests = !useMac)
+            var chunkIdx = 0
             val result = embedder.embedDocuments(
                 texts = toEmbed.map { it.value.text },
                 useMac = useMac,
-                beforeEachOnPhone = { thermal.awaitCapacity() }
+                beforeEachOnPhone = {
+                    if (++chunkIdx > 1 && chunkIdx % 4 == 0) thermal.awaitCapacity(routineRests = !useMac)
+                }
             )
             if (result !is FileVectors.Ready) return result
             if (!IndexingPolicy.canSave(expected = toEmbed.size, result.embeddings)) return FileVectors.NoVector
             val byChunk = toEmbed.map { it.index }.zip(result.embeddings).toMap()
+            val contentHash = uri.path?.let { ContentHasher.computeFastHash(File(it), file.sizeBytes).ifEmpty { null } }
             db.withTransaction {
                 chunkDao.deleteChunksForFile(file.id)
                 embeddingDao.deleteForFile(file.id)
@@ -959,6 +953,13 @@ class IndexRepository(private val context: Context) {
                             engine = embedding.engine
                         )
                     }
+                )
+                fileDao.updateFileStatus(
+                    fileId = file.id,
+                    status = IndexStatus.INDEXED,
+                    timestamp = System.currentTimeMillis(),
+                    modelVersion = embedder.activeModelVersion,
+                    contentHash = contentHash
                 )
             }
             return result

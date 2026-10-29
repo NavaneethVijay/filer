@@ -322,9 +322,14 @@ class EmbedderEngine(private val context: Context) {
 
     private fun loadDownscaledBitmap(uri: Uri, targetSize: Int): Bitmap? {
         return try {
+            val path = if (uri.scheme == "file" && uri.path != null) uri.path else null
             val options = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-            context.contentResolver.openInputStream(uri)?.use { stream ->
-                BitmapFactory.decodeStream(stream, null, options)
+            if (path != null) {
+                BitmapFactory.decodeFile(path, options)
+            } else {
+                context.contentResolver.openInputStream(uri)?.use { stream ->
+                    BitmapFactory.decodeStream(stream, null, options)
+                }
             }
             var scale = 1
             while (options.outWidth / scale / 2 >= targetSize && options.outHeight / scale / 2 >= targetSize) {
@@ -334,8 +339,12 @@ class EmbedderEngine(private val context: Context) {
                 inSampleSize = scale
                 inPreferredConfig = Bitmap.Config.ARGB_8888
             }
-            context.contentResolver.openInputStream(uri)?.use { stream ->
-                BitmapFactory.decodeStream(stream, null, decodeOptions)
+            if (path != null) {
+                BitmapFactory.decodeFile(path, decodeOptions)
+            } else {
+                context.contentResolver.openInputStream(uri)?.use { stream ->
+                    BitmapFactory.decodeStream(stream, null, decodeOptions)
+                }
             }
         } catch (e: Exception) {
             null

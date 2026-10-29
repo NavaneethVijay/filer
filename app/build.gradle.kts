@@ -14,8 +14,8 @@ android {
         applicationId = "com.navaneeth.filer"
         minSdk = 31
         targetSdk = 35
-        versionCode = (project.findProperty("versionCode") as String?)?.toIntOrNull() ?: 1
-        versionName = (project.findProperty("versionName") as String?) ?: "1.0.0"
+        versionCode = (project.findProperty("versionCode") as String?)?.toIntOrNull() ?: 2
+        versionName = (project.findProperty("versionName") as String?) ?: "1.0.2"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {

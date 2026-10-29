@@ -1,0 +1,106 @@
+#!/usr/bin/env bash
+# Git pre-push hook for Filer
+# Ensures that new commits pushed to 'main' have an associated version tag
+# and that the tag is also pushed so the GitHub Actions release workflow triggers.
+
+set -e
+
+remote="$1"
+url="$2"
+zero_sha="0000000000000000000000000000000000000000"
+
+# Read all push references from stdin
+push_entries=()
+while read -r local_ref local_sha remote_ref remote_sha; do
+    if [ -n "$local_ref" ]; then
+        push_entries+=("$local_ref $local_sha $remote_ref $remote_sha")
+    fi
+done
+
+for entry in "${push_entries[@]}"; do
+    read -r local_ref local_sha remote_ref remote_sha <<< "$entry"
+
+    # Only validate pushes targeting the 'main' branch
+    if [ "$remote_ref" = "refs/heads/main" ]; then
+        # Skip if branch deletion
+        if [ "$local_sha" = "$zero_sha" ]; then
+            continue
+        fi
+
+        # Skip if main is already at local_sha on remote (no new commits pushed to main)
+        if [ "$local_sha" = "$remote_sha" ]; then
+            continue
+        fi
+
+        # Find tags pointing to the commit being pushed
+        tags=$(git tag --points-at "$local_sha")
+
+        if [ -z "$tags" ]; then
+            latest_tag=$(git describe --tags --abbrev=0 2>/dev/null || echo "none")
+            echo ""
+            echo "=========================================================================="
+            echo " [ERROR] Push to 'main' blocked: Commit is not tagged!"
+            echo "=========================================================================="
+            echo " Commit: ${local_sha:0:7}"
+            echo " Latest existing tag: $latest_tag"
+            echo ""
+            echo " Filer releases are built and published when a tag is pushed."
+            echo " Before pushing to 'main', please tag this commit with the new version:"
+            echo ""
+            echo "   git tag v1.0.0"
+            echo "   git push $remote main v1.0.0"
+            echo "   (or: git push $remote main --tags)"
+            echo ""
+            echo " If you need to push without a tag, bypass this hook using:"
+            echo "   git push --no-verify"
+            echo "=========================================================================="
+            echo ""
+            exit 1
+        fi
+
+        # Verify that the tag is also included in this push or already on remote
+        tag_being_pushed=false
+        for pushed_ref in "${push_entries[@]}"; do
+            read -r p_local_ref p_local_sha p_remote_ref p_remote_sha <<< "$pushed_ref"
+            if [[ "$p_remote_ref" == refs/tags/* ]]; then
+                tag_name="${p_remote_ref#refs/tags/}"
+                for t in $tags; do
+                    if [ "$t" = "$tag_name" ]; then
+                        tag_being_pushed=true
+                        break 2
+                    fi
+                done
+            fi
+        done
+
+        if [ "$tag_being_pushed" = false ]; then
+            for t in $tags; do
+                if git ls-remote --tags --exit-code "$remote" "refs/tags/$t" >/dev/null 2>&1; then
+                    tag_being_pushed=true
+                    break
+                fi
+            done
+        fi
+
+        if [ "$tag_being_pushed" = false ]; then
+            first_tag=$(echo "$tags" | head -n1)
+            echo ""
+            echo "=========================================================================="
+            echo " [WARNING] Tag '$first_tag' exists locally, but is not being pushed to $remote!"
+            echo "=========================================================================="
+            echo " Without pushing the tag, GitHub Actions will not trigger the Release build."
+            echo ""
+            echo " Push both the branch and tag together with:"
+            echo "   git push $remote main $first_tag"
+            echo "   (or: git push $remote main --tags)"
+            echo ""
+            echo " To bypass this check, use:"
+            echo "   git push --no-verify"
+            echo "=========================================================================="
+            echo ""
+            exit 1
+        fi
+    fi
+done
+
+exit 0
