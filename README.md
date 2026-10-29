@@ -1,3 +1,5 @@
+![Filer](screenshots/banner.png)
+
 # Filer
 
 **An offline Android file manager that finds files by what's in them.**
