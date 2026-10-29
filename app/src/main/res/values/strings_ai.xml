@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Settings › AI plugins -->
+    <string name="settings_ai_plugins">AI plugins</string>
+    <string name="settings_ai_plugins_body">Text in photos, tags, transcripts</string>
+    <string name="ai_plugins_title">AI plugins</string>
+    <string name="ai_plugins_subtitle">Optional models that read and organise your files. Nothing downloads until you ask.</string>
+    <string name="ai_plugins_private_title">Runs only on this phone</string>
+    <string name="ai_plugins_private_body">Offline, no account. Works with smart search on or off and never changes your search index.</string>
+    <string name="ai_plugins_section">Plugins</string>
+    <string name="ai_plugins_free">%s free on this phone</string>
+
+    <string name="plugin_photo_text">Text in photos</string>
+    <string name="plugin_photo_text_body">Reads receipts, screenshots and scans when you tap Read text, so you can copy and search their words.</string>
+    <string name="plugin_speech">Audio &amp; voice notes</string>
+    <string name="plugin_speech_body">Turns a recording into text when you tap Transcribe. Many languages, Indian ones included.</string>
+    <string name="plugin_model_photo_text">PP-OCRv6 small</string>
+    <string name="plugin_model_speech">Whisper tiny</string>
+    <string name="plugin_size_line">%1$s · %2$s</string>
+
+    <string name="plugin_ready">Ready</string>
+    <string name="plugin_off">Off</string>
+    <string name="plugin_download">Download</string>
+    <string name="plugin_resume">Resume</string>
+    <string name="plugin_pause">Pause</string>
+    <string name="plugin_cancel_download">Cancel</string>
+    <string name="plugin_remove">Remove</string>
+    <string name="plugin_downloading">%1$s of %2$s</string>
+    <string name="plugin_paused">Paused · %1$s of %2$s</string>
+    <string name="plugin_failed_space">Not enough free space for this download</string>
+    <string name="plugin_failed_network">Download stopped. Check your connection and try again.</string>
+    <string name="plugin_failed_file">The download didn\'t come through intact. Try again.</string>
+    <string name="plugin_unsupported_memory">This phone doesn\'t have enough memory for this plugin</string>
+    <string name="plugin_unsupported_64">This plugin needs a 64-bit phone</string>
+    <string name="plugin_use">Use this plugin</string>
+    <string name="plugin_use_body">Off keeps the download but stops it running</string>
+    <string name="plugin_remove_title">Remove %s?</string>
+    <string name="plugin_remove_body">Its model and what it made (text, transcripts, suggestions) are deleted, here and in smart search. Tags you added stay.</string>
+
+    <string name="photo_text_background">Read photos you already have</string>
+    <string name="photo_text_background_body">Only while charging. Otherwise a photo\'s text is read only when you tap Read text.</string>
+    <string name="photo_text_progress">%1$d of %2$d photos read</string>
+    <string name="plugin_clear">Clear</string>
+    <string name="plugin_clear_text">Clear text read so far</string>
+    <plurals name="plugin_clear_text_count">
+        <item quantity="one">%d photo or scan</item>
+        <item quantity="other">%d photos and scans</item>
+    </plurals>
+    <string name="plugin_clear_text_title">Clear text read from photos?</string>
+    <string name="plugin_clear_text_body">The text read from photos and scans is deleted, and search stops finding them by that text. The plugin stays; tap Read text to read a photo again.</string>
+    <string name="plugin_clear_text_background">“Read photos you already have” is on, so photos will be read again the next time the phone charges. Turn it off first to keep them cleared.</string>
+    <string name="plugin_clear_transcripts">Clear transcripts</string>
+    <plurals name="plugin_clear_transcripts_count">
+        <item quantity="one">%d recording</item>
+        <item quantity="other">%d recordings</item>
+    </plurals>
+    <string name="plugin_clear_transcripts_title">Clear all transcripts?</string>
+    <string name="plugin_clear_transcripts_body">Transcripts are deleted, and search stops finding recordings by what was said. The plugin stays; tap Transcribe to make one again.</string>
+    <string name="plugin_clear_tags">Clear suggested tags</string>
+    <plurals name="plugin_clear_tags_count">
+        <item quantity="one">%d suggested tag</item>
+        <item quantity="other">%d suggested tags</item>
+    </plurals>
+    <string name="plugin_clear_tags_title">Clear suggested tags and names?</string>
+    <string name="plugin_clear_tags_body">Suggested tags and file names are deleted. Tags you added yourself stay.</string>
+    <string name="photo_text_read_count">%d photos and scans read so far</string>
+    <string name="photo_text_scripts">Indian scripts</string>
+    <string name="photo_text_scripts_body">Extra readers for text in these scripts, about 8 MB each</string>
+    <string name="script_devanagari">Devanagari (Hindi, Marathi, Nepali…)</string>
+    <string name="script_tamil">Tamil</string>
+    <string name="script_telugu">Telugu</string>
+
+    <string name="language_suggest_names">Suggest clearer names</string>
+    <string name="language_suggest_names_body">With Suggest tags, also suggest a name for files named like IMG_1234 or Scan_001. Nothing is renamed until you tap Rename.</string>
+
+    <string name="speech_language">Language</string>
+    <string name="speech_language_auto">Detect automatically</string>
+    <string name="speech_never_background">Transcribes only when you tap Transcribe, never in the background.</string>
+
+    <!-- File details -->
+    <string name="action_details">Details</string>
+    <string name="ai_photo_text_title">Text in this photo</string>
+    <string name="ai_reading_text">Reading text…</string>
+    <string name="ai_read_text">Read text</string>
+    <string name="ai_read_text_body">Find the words in this file on this phone, to copy and search them.</string>
+    <string name="ai_no_text_found">No text found</string>
+    <string name="ai_copy_all">Copy all</string>
+    <string name="ai_copied">Copied</string>
+    <string name="ai_suggested_name">Suggested name</string>
+    <string name="ai_suggested_name_body">From the file\'s own text. Nothing changes until you tap Rename.</string>
+    <string name="ai_rename">Rename</string>
+    <string name="ai_dismiss">Dismiss</string>
+    <string name="ai_tags_title">Tags</string>
+    <string name="ai_add_tag">Add tag</string>
+    <string name="ai_add_tag_title">Add a tag</string>
+    <string name="ai_tag_hint">Tag, e.g. receipts</string>
+    <string name="ai_problem_needs_smart_search">Suggested tags come from the smart search model. Turn on smart search to download it.</string>
+    <string name="ai_problem_no_tags">Nothing stood out enough to be a tag. Add your own with Add tag.</string>
+    <string name="ai_tags_suggesting">Suggesting tags…</string>
+    <string name="ai_suggest_tags">Suggest tags</string>
+    <string name="ai_tags_none">No tags yet</string>
+    <string name="cd_remove_tag">Remove tag %s</string>
+    <string name="cd_suggested_tag">Suggested</string>
+    <string name="ai_transcript_title">Transcript</string>
+    <string name="ai_transcribe">Transcribe</string>
+    <string name="ai_transcribe_body">Turns this recording into text on this phone. It can take a while for long recordings.</string>
+    <string name="ai_transcribing">Transcribing… %d%%</string>
+    <string name="ai_no_speech">No speech found</string>
+    <string name="ai_tap_line">Tap a line to play from there</string>
+    <string name="ai_long_recording_title">Transcribe a long recording?</string>
+    <string name="ai_long_recording_body">This recording is %s long. Transcribing takes a while and uses the battery; keep Filer open.</string>
+    <string name="ai_play">Play</string>
+    <string name="ai_pause">Pause</string>
+    <string name="ai_stop">Stop</string>
+    <string name="ai_problem_hot">The phone is too hot right now. Try again in a minute.</string>
+    <string name="ai_problem_no_text">There\'s no text in this file to work with.</string>
+    <string name="ai_problem_failed">That didn\'t work.</string>
+    <string name="ai_problem_needs_photo_text">This needs Text in photos to read the text first. Install it, or switch it on, in Settings › AI plugins.</string>
+    <string name="ai_problem_needs_transcript">Transcribe this recording first; its tags come from its words.</string>
+    <string name="ai_try_again">Try again</string>
+    <string name="ai_status_waiting">Waiting for another AI task to finish…</string>
+    <string name="ai_status_elapsed">%s so far</string>
+    <string name="ai_reading_text_first">Reading the text first…</string>
+
+    <!-- Viewer for PDFs, text and recordings -->
+    <string name="viewer_ai">AI</string>
+    <string name="ai_panel_no_plugins">Add your own tags here. Tap Suggest tags for suggestions. Reading text and transcripts come with the AI plugins in Settings › AI plugins.</string>
+    <string name="viewer_page">Page %1$d of %2$d</string>
+    <string name="viewer_cant_preview">Can\'t show this PDF</string>
+    <string name="viewer_cant_preview_body">It may be damaged or need a password. Use Open with to try another app.</string>
+    <string name="viewer_truncated">Only the start of this file is shown. Use Open with to see all of it.</string>
+
+    <!-- Tags -->
+    <string name="section_tags">Tags</string>
+    <string name="tags_hint">Tags you add, plus ones Filer suggests from what a file is about. Tap a tag to see its files.</string>
+    <string name="tag_empty_title">No files with this tag</string>
+    <string name="tag_empty_body">Files tagged here and deleted elsewhere drop out on their own.</string>
+    <plurals name="tag_files">
+        <item quantity="one">%d file</item>
+        <item quantity="other">%d files</item>
+    </plurals>
+
+    <!-- Manage tags -->
+    <string name="manage_tags_title">Manage tags</string>
+    <string name="manage_tags_action">Manage</string>
+    <string name="manage_tags_body">Tags you added and ones Filer suggested. Tap a tag to see its files.</string>
+    <plurals name="manage_tags_count">
+        <item quantity="one">%d tag</item>
+        <item quantity="other">%d tags</item>
+    </plurals>
+    <string name="manage_tags_empty_title">No tags yet</string>
+    <string name="manage_tags_empty_body">Add tags from a file\'s details or the AI button in the viewer. Or tap Suggest tags.</string>
+    <string name="manage_tags_delete">Delete tag</string>
+    <string name="manage_tags_delete_title">Delete #%s?</string>
+    <string name="manage_tags_delete_body">The tag is taken off every file. The files themselves aren\'t touched.</string>
+    <string name="manage_tags_rename_title">Rename tag</string>
+    <string name="manage_tags_rename_body">If a tag with this name exists, the two are merged.</string>
+    <string name="manage_tags_suggested_title">Suggested by Filer</string>
+    <string name="manage_tags_remove_suggested">Remove all suggested tags</string>
+    <plurals name="manage_tags_suggested_count">
+        <item quantity="one">%d suggested tag on your files</item>
+        <item quantity="other">%d suggested tags on your files</item>
+    </plurals>
+    <string name="manage_tags_remove_suggested_title">Remove all suggested tags?</string>
+    <string name="manage_tags_remove_suggested_body">Tags you added yourself stay.</string>
+    <string name="cd_tag_options">Options for #%s</string>
+    <string name="tags_settings_hint">Suggest tags runs only when you tap it on a file.</string>
+
+    <!-- Search -->
+    <string name="filter_tagged">Tagged %s</string>
+    <string name="search_photo_text_match">Text in photo: %s</string>
+    <string name="search_transcript_match">Transcript: %s</string>
+
+    <!-- Index status -->
+    <string name="index_photo_text_row">Text in photos</string>
+
+    <!-- File sheet: Details row summary -->
+    <string name="details_loading">Smart search, tags and text read from this file</string>
+    <string name="details_text_read">Text read</string>
+    <string name="details_transcribed">Transcribed</string>
+    <plurals name="details_tag_count">
+        <item quantity="one">%d tag</item>
+        <item quantity="other">%d tags</item>
+    </plurals>
+</resources>

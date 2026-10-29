@@ -1,0 +1,612 @@
+<resources>
+    <string name="app_name">Filer</string>
+
+    <!-- Navigation -->
+    <string name="tab_browse">Browse</string>
+    <string name="tab_search">Search</string>
+    <string name="tab_recent">Recent</string>
+    <string name="tab_settings">Settings</string>
+
+    <!-- Sections -->
+    <string name="section_recent">Recent</string>
+    <string name="section_categories">Categories</string>
+    <string name="section_search">Search</string>
+    <string name="section_general">General</string>
+    <string name="section_indexing">Indexing details</string>
+
+    <!-- Categories and file kinds -->
+    <string name="category_images">Images</string>
+    <string name="category_documents">Documents</string>
+    <string name="category_pdfs">PDFs</string>
+    <string name="category_code">Code</string>
+    <string name="filter_all">All</string>
+    <string name="kind_folder">Folder</string>
+    <string name="kind_image">Image</string>
+    <string name="kind_video">Video</string>
+    <string name="kind_audio">Audio</string>
+    <string name="kind_pdf">PDF document</string>
+    <string name="kind_document">Document</string>
+    <string name="kind_spreadsheet">Spreadsheet</string>
+    <string name="kind_presentation">Presentation</string>
+    <string name="kind_code">Code</string>
+    <string name="kind_archive">Archive</string>
+    <string name="kind_apk">App package</string>
+    <string name="kind_other">File</string>
+    <plurals name="file_count">
+        <item quantity="one">%d file</item>
+        <item quantity="other">%d files</item>
+    </plurals>
+
+    <!-- Actions -->
+    <string name="action_open">Open</string>
+    <string name="action_open_with">Open with</string>
+    <string name="action_share">Share</string>
+    <string name="action_add_folder">Add folder</string>
+    <string name="action_see_all">See all</string>
+    <string name="action_get_started">Get started</string>
+    <string name="action_continue">Continue</string>
+    <string name="action_not_now">Not now</string>
+    <string name="action_pause">Pause</string>
+    <string name="action_resume">Resume</string>
+    <string name="action_try_again">Try again</string>
+    <string name="action_turn_on">Turn on</string>
+    <string name="action_remove">Remove</string>
+    <string name="action_clear">Clear</string>
+    <string name="action_cancel">Cancel</string>
+    <string name="state_on">On</string>
+
+    <!-- File details -->
+    <string name="detail_location">Location</string>
+    <string name="detail_modified">Modified</string>
+    <string name="detail_size">Size</string>
+    <string name="detail_type">Type</string>
+    <string name="error_no_app">No app can open this file</string>
+
+    <!-- Sorting and views -->
+    <string name="sort_name">Name</string>
+    <string name="sort_date">Date modified</string>
+    <string name="sort_size">Size</string>
+
+    <!-- Accessibility -->
+    <string name="cd_back">Back</string>
+    <string name="cd_sort">Sort</string>
+    <string name="cd_list_view">List view</string>
+    <string name="cd_grid_view">Grid view</string>
+    <string name="cd_more_options">More options for %1$s</string>
+    <string name="cd_remove_folder">Remove %1$s</string>
+    <string name="cd_close_search">Close search</string>
+    <string name="cd_clear_search">Clear search</string>
+    <string name="cd_smart_search_on">Smart search is on</string>
+
+    <!-- Search -->
+    <string name="search_hint">Search your files</string>
+    <string name="search_try">Try searching for</string>
+    <string name="search_example_1">receipt for my scooter</string>
+    <string name="search_example_2">car insurance renewal</string>
+    <string name="search_example_3">notes about system architecture</string>
+    <string name="search_example_4">photos of my car</string>
+    <string name="search_tip_smart">Describe what you\'re looking for. Filer matches by meaning, on your phone.</string>
+    <string name="search_tip_basic">Searching file names and text. Turn on smart search in Settings to search by meaning.</string>
+    <string name="search_empty_title">No matching files</string>
+    <string name="search_empty_body">Try different words, or describe what\'s in the file.</string>
+
+    <!-- Smart search -->
+    <string name="smart_search_title">Search by meaning</string>
+    <string name="smart_search_body">Find files by describing them, like “receipt for my scooter”. Runs fully on your phone.</string>
+    <string name="smart_search_paused">Setup is paused. Pick up where you left off.</string>
+    <string name="smart_search_error">Setup couldn\'t finish. Check your connection and storage, then try again.</string>
+    <string name="smart_search_enable">Turn on · 485 MB</string>
+    <string name="smart_search_setting_up">Setting up smart search</string>
+    <string name="smart_search_starting">Starting…</string>
+    <string name="smart_search_finishing">Finishing up…</string>
+    <string name="smart_search_progress">%1$s of %2$s</string>
+    <string name="smart_search_ready">Smart search is ready</string>
+    <string name="smart_search_status_on">On · works offline</string>
+    <string name="smart_search_status_off">Off · searching names and text only</string>
+    <string name="smart_search_status_downloading">Downloading · %1$d%%</string>
+    <string name="smart_search_status_paused">Paused</string>
+    <string name="smart_search_status_error">Couldn\'t finish setup</string>
+    <string name="metered_title">Use mobile data?</string>
+    <string name="metered_body">Smart search needs a one-time 485 MB download. You\'re not on Wi‑Fi right now.</string>
+    <string name="metered_confirm">Download anyway</string>
+    <string name="metered_wait">Wait for Wi‑Fi</string>
+
+    <!-- Browse / Recent / collections / folders -->
+    <string name="recent_today">Today</string>
+    <string name="recent_yesterday">Yesterday</string>
+    <string name="recent_this_week">Earlier this week</string>
+    <string name="recent_this_month">Earlier this month</string>
+    <string name="recent_earlier">Older</string>
+    <string name="recent_empty_title">Nothing recent</string>
+    <string name="recent_empty_body">Files you save or change will show up here.</string>
+    <string name="collection_empty_title">Nothing here yet</string>
+    <string name="collection_empty_body">There are no files of this type on your phone.</string>
+    <string name="folder_empty_title">This folder is empty</string>
+    <string name="folder_empty_body">Pull down to refresh.</string>
+    <string name="folder_error_title">Can\'t open this folder</string>
+    <string name="folder_error_body">It may have been moved, or All files access was turned off.</string>
+
+    <!-- Onboarding -->
+    <string name="welcome_title">Your files, easy to find.</string>
+    <string name="welcome_body">A file manager for all your files, with search that understands what you\'re looking for.</string>
+    <string name="welcome_point_folders_title">Browse everything</string>
+    <string name="welcome_point_folders_body">Every folder on your phone, like the Files app.</string>
+    <string name="welcome_point_search_title">Search by meaning</string>
+    <string name="welcome_point_search_body">Pick folders to search by meaning. “Insurance renewal from last November” just works.</string>
+    <string name="welcome_point_private_title">Stays on your phone</string>
+    <string name="welcome_point_private_body">Nothing is uploaded. Ever.</string>
+
+    <!-- Settings -->
+    <string name="show_details">Show indexing details</string>
+    <string name="show_details_body">Index status, model controls and match scores</string>
+    <string name="privacy_about">Privacy &amp; about</string>
+    <string name="index_status">Index status</string>
+    <string name="index_ready">%1$d of %2$d files ready</string>
+    <string name="index_ready_with_failures">%1$d of %2$d files ready · %3$d failed</string>
+    <string name="indexed_files">Indexed files</string>
+    <string name="model_hardware">Model &amp; hardware</string>
+    <string name="model_hardware_body">EmbeddingGemma 2 · download, pause or remove</string>
+    <string name="charging_only">Index only while charging</string>
+    <string name="wifi_only">Download model on Wi‑Fi only</string>
+    <string name="rescan_now">Rescan folders now</string>
+    <string name="clear_index">Clear search index</string>
+    <string name="clear_index_title">Clear search index?</string>
+    <string name="clear_index_body">Search data is rebuilt the next time Filer goes through your folders. Your files aren\'t touched.</string>
+    <string name="remove_model">Remove smart search model</string>
+    <string name="remove_model_title">Remove smart search?</string>
+    <string name="remove_model_body">Frees 485 MB. Search falls back to names and text until you turn it on again.</string>
+    <string name="version_label">Filer %1$s</string>
+
+    <!-- Indexing details -->
+    <string name="cd_more">More options</string>
+    <string name="status_ready">Ready</string>
+    <string name="status_waiting">Waiting</string>
+    <string name="status_failed">Failed</string>
+    <string name="status_skipped">Skipped</string>
+    <string name="status_gone">In Recycle bin</string>
+    <string name="hero_running">Preparing your files</string>
+    <string name="hero_paused">Paused</string>
+    <string name="hero_done">Everything is up to date</string>
+    <plurals name="hero_waiting">
+        <item quantity="one">%d file waiting</item>
+        <item quantity="other">%d files waiting</item>
+    </plurals>
+    <plurals name="hero_failed">
+        <item quantity="one">%d file couldn\'t be read</item>
+        <item quantity="other">%d files couldn\'t be read</item>
+    </plurals>
+    <string name="hero_waiting_charger">Large updates run while your phone is charging, to save battery. Tap Index now to start anyway.</string>
+    <string name="hero_cooling">Cooling down phone</string>
+    <string name="hero_cooling_body">Temporarily paused to keep device cool. Will resume automatically.</string>
+    <string name="hero_progress">%1$d of %2$d files</string>
+    <string name="hero_last_scan">Last scan %1$s</string>
+    <string name="action_index_now">Index now</string>
+    <string name="action_stop">Stop</string>
+    <string name="action_download">Download</string>
+    <string name="rebuild_index">Rebuild index</string>
+    <string name="rebuild_index_title">Rebuild the search index?</string>
+    <string name="rebuild_index_body">Every file is read and prepared again. This can take a while and uses battery. Your files aren\'t changed.</string>
+    <string name="storage_title">Storage used by Filer</string>
+    <string name="storage_total">%1$s in total</string>
+    <string name="storage_search_data">Search index</string>
+    <string name="storage_model">Smart search model</string>
+    <string name="storage_ai_plugins">AI plugins</string>
+    <string name="storage_locked">Locked folder</string>
+    <string name="storage_temporary">Temporary files</string>
+    <string name="storage_app">App</string>
+    <string name="storage_other">Settings and other data</string>
+    <string name="storage_clear_temporary">Clear temporary files</string>
+    <string name="storage_clear_temporary_title">Clear %1$s of temporary files?</string>
+    <string name="storage_clear_temporary_body">These are ready-to-run copies of the AI models. They’re made again the next time a model starts, so smart search or the next AI task will take longer to start once.</string>
+    <string name="storage_clear">Clear</string>
+    <string name="storage_total_note">Everything Filer keeps on this phone, as in Android’s Settings › Apps</string>
+    <string name="storage_free">%1$s free on this phone</string>
+    <string name="file_types_title">File types</string>
+    <string name="resources_title">Live phone resource usage</string>
+    <string name="resources_cpu">CPU load</string>
+    <string name="resources_memory">Memory (RAM)</string>
+    <string name="resources_temperature">Temperature &amp; Thermals</string>
+    <string name="resources_accelerator">Accelerator</string>
+    <string name="resources_pacing">Pacing &amp; duty cycle</string>
+    <string name="resources_status_inferring">Reading a file</string>
+    <string name="resources_status_yielding">Resting between files</string>
+    <string name="resources_status_throttled">Cooling down</string>
+    <string name="filter_by_name">Filter by name</string>
+    <string name="indexed_empty_title">No files here</string>
+    <string name="indexed_empty_body">Try another filter or name.</string>
+
+    <!-- File index details -->
+    <string name="file_details_title">File details</string>
+    <string name="file_missing_title">File not found</string>
+    <string name="file_missing_body">It may have been moved or deleted.</string>
+    <string name="search_index_title">Search index</string>
+    <string name="detail_status">Status</string>
+    <string name="detail_error">Problem</string>
+    <string name="detail_indexed">Last indexed</string>
+    <string name="detail_not_yet">Not yet</string>
+    <string name="detail_embedding">Embedding</string>
+    <string name="detail_embedding_image">1 image vector · %1$d dimensions</string>
+    <string name="detail_embedding_text">%1$d passages · %2$d dimensions each</string>
+    <string name="detail_embedding_none">Not embedded yet</string>
+    <string name="indexed_text_title">Text read from this file</string>
+    <string name="page_number">Page %1$d</string>
+    <string name="show_all_passages">Show all %1$d passages</string>
+    <string name="show_less">Show less</string>
+    <string name="remove_from_index">Remove from index</string>
+    <string name="remove_from_index_title">Remove from search index?</string>
+    <string name="remove_from_index_body">This file won\'t appear in search until its folder is scanned again. The file itself stays on your phone.</string>
+
+    <!-- Model and hardware -->
+    <string name="model_name">EmbeddingGemma 2</string>
+    <string name="model_summary">On-device search model by Google · %1$s</string>
+    <string name="model_installed">Installed</string>
+    <string name="model_not_installed">Not installed. Search uses file names and text until you download it.</string>
+    <string name="processing_title">Processing</string>
+    <string name="accelerator_auto">Automatic</string>
+    <string name="accelerator_auto_body">Uses the GPU when available for faster indexing</string>
+    <string name="accelerator_cpu">CPU only</string>
+    <string name="accelerator_cpu_body">Slower, but works on every phone</string>
+    <string name="accelerator_note">Changes take effect the next time Filer starts.</string>
+    <string name="about_model_title">About this model</string>
+    <string name="about_model_local">Runs on this phone</string>
+    <string name="about_model_local_body">Your files and searches are never sent anywhere.</string>
+    <string name="about_model_network">Downloaded once</string>
+    <string name="about_model_network_body">From Hugging Face, the only time Filer uses the internet.</string>
+    <string name="about_model_storage">Storage</string>
+    <string name="about_model_storage_body">%1$s in Filer\'s private storage</string>
+
+    <!-- Privacy -->
+    <string name="privacy_hero_title">Everything stays on your phone</string>
+    <string name="privacy_hero_body">Filer reads your files, prepares them for search and answers your searches entirely on this device. There are no accounts, no analytics and no servers.</string>
+    <string name="privacy_access_title">What Filer can see</string>
+    <string name="privacy_access_folders">All files access</string>
+    <string name="privacy_access_folders_body">Used to browse your storage like a file manager. Only folders you add to smart search are read for their content.</string>
+    <string name="privacy_access_photos">Smart search folders</string>
+    <string name="privacy_access_photos_body">Their text and photos are turned into search data that stays on this phone.</string>
+    <string name="privacy_access_notifications">Notifications</string>
+    <string name="privacy_access_notifications_body">Only to show progress while files are being prepared.</string>
+    <string name="privacy_stores_title">What Filer keeps</string>
+    <string name="privacy_stores_pointers">Links to your files</string>
+    <string name="privacy_stores_pointers_body">Names, sizes and dates. Files are never copied.</string>
+    <string name="privacy_stores_snippets">Text from your documents</string>
+    <string name="privacy_stores_snippets_body">Kept in passages so results can show where your search matched.</string>
+    <string name="privacy_stores_vectors">Search vectors</string>
+    <string name="privacy_stores_vectors_body">Numbers that describe each passage or photo, used to match by meaning.</string>
+    <string name="privacy_network_title">Internet use</string>
+    <string name="privacy_network_model">Smart search download</string>
+    <string name="privacy_network_model_body">The model file, once, only when you turn smart search on.</string>
+    <string name="privacy_network_none">Nothing else</string>
+    <string name="privacy_network_none_body">Your files, text and searches never leave this phone.</string>
+
+    <!-- File manager & smart search folders -->
+    <string name="section_storage">Storage</string>
+    <string name="section_smart_folders">Smart search folders</string>
+    <string name="storage_used">%1$s of %2$s used</string>
+    <string name="category_videos">Videos</string>
+    <string name="category_audio">Audio</string>
+    <string name="category_downloads">Downloads</string>
+    <string name="category_apks">Apps (APK)</string>
+    <plurals name="item_count">
+        <item quantity="one">%d item</item>
+        <item quantity="other">%d items</item>
+    </plurals>
+    <string name="smart_folders_empty">Pick folders to search by meaning. Everything else is still searchable by name.</string>
+    <string name="smart_folders_add_hint">Open a folder and tap ✨, or long-press it</string>
+    <string name="smart_folder_progress">%1$d of %2$d files ready</string>
+    <string name="add_to_smart">Add to smart search</string>
+    <string name="add_to_smart_body">Prepared in the background, a little at a time</string>
+    <string name="remove_from_smart">Remove from smart search</string>
+    <string name="remove_from_smart_body">Files stay on your phone and remain searchable by name</string>
+    <string name="remove_smart_title">Remove “%1$s” from smart search?</string>
+    <string name="remove_smart_body">Its search data is deleted. The files stay on your phone and can still be found by name.</string>
+    <string name="smart_added">Added to smart search. Indexing in the background.</string>
+    <string name="smart_already_included">Included through “%1$s”</string>
+    <string name="cd_smart_on">In smart search</string>
+    <string name="cd_smart_off">Add to smart search</string>
+
+    <!-- All files access & setup -->
+    <string name="access_title">Allow access to your files</string>
+    <string name="access_body">Filer works like a file manager, so it needs Android\'s “All files access”. Tap below, then switch it on for Filer.</string>
+    <string name="access_point_browse">Browse every folder, like the Files app</string>
+    <string name="access_point_private">Nothing leaves your phone. There\'s no account and no server.</string>
+    <string name="access_point_choose">You choose which folders are searched by meaning</string>
+    <string name="access_allow">Allow access</string>
+    <string name="smart_setup_title">Search by meaning</string>
+    <string name="smart_setup_body">Pick folders to search by what\'s inside the files. Filer prepares them slowly in the background, so this can take a few days for big folders.</string>
+    <string name="smart_setup_hint">Every file stays searchable by name. You can add or remove folders any time.</string>
+    <string name="action_skip_for_now">Skip for now</string>
+
+    <!-- Why a search result matched (file details from search) -->
+    <string name="match_title">Why it matched</string>
+    <string name="match_meaning">Similar in meaning to “%1$s”</string>
+    <string name="match_meaning_photo">Looks like “%1$s”</string>
+    <string name="match_words">Contains %1$s</string>
+    <string name="match_name">Name matches “%1$s”</string>
+    <string name="match_best">Best match</string>
+    <string name="match_passage">Match %1$d</string>
+    <string name="show_more">Show more</string>
+    <string name="section_file_info">File info</string>
+    <string name="action_show_in_folder">Show in folder</string>
+    <string name="detail_smart_search">Smart search</string>
+    <string name="smart_status_ready">Searchable by meaning</string>
+    <string name="smart_status_waiting">Waiting to be prepared</string>
+    <string name="smart_status_failed">Couldn’t be read</string>
+    <string name="smart_status_skipped">By name only: this type can’t be read</string>
+    <string name="smart_status_none">By name only: not in smart search</string>
+
+    <!-- Whole phone smart search -->
+    <string name="whole_phone_title">Whole phone</string>
+    <string name="whole_phone_body">All photos, PDFs and text files. Videos and audio are found by name.</string>
+    <string name="whole_phone_setup_body">All photos, PDFs and text files. Takes longer; runs while charging.</string>
+    <string name="whole_phone_off_title">Stop searching the whole phone by meaning?</string>
+    <string name="whole_phone_off_body">Search data for files outside your smart search folders is deleted. The files stay on your phone and can still be found by name.</string>
+    <string name="action_turn_off">Turn off</string>
+
+    <!-- Indexing time left -->
+    <string name="eta_under_minute">Less than a minute left</string>
+    <string name="eta_minutes">About %1$d min left</string>
+    <string name="eta_hours">About %1$d h left</string>
+    <string name="eta_hours_minutes">About %1$d h %2$d min left</string>
+    <string name="eta_days_hours">About %1$d d %2$d h left</string>
+    <string name="eta_with_finish">%1$s · done around %2$s</string>
+
+    <!-- File kinds read by smart search -->
+    <string name="section_kinds">File types to search by meaning</string>
+    <string name="kind_photos">Photos</string>
+    <string name="kind_photos_body">Find photos by what\'s in them</string>
+    <string name="kind_pdfs">PDFs</string>
+    <string name="kind_pdfs_body">Read the text inside PDFs</string>
+    <string name="kind_text">Text and code</string>
+    <string name="kind_text_body">Notes, CSV, JSON, Markdown and code files</string>
+    <string name="kind_off_title">Stop searching %1$s by meaning?</string>
+    <string name="kind_off_body">Their search data is deleted. They can still be found by name. Turning this back on prepares them again.</string>
+
+    <!-- Files the indexer can't read -->
+    <string name="problem_protected">Password-protected</string>
+    <string name="problem_unreadable">Damaged, unsupported or too large to read</string>
+    <string name="smart_status_protected">By name only: password-protected</string>
+    <!-- File management -->
+    <string name="category_archives">Archives</string>
+    <string name="action_rename">Rename</string>
+    <string name="action_move_to">Move to…</string>
+    <string name="action_copy_to">Copy to…</string>
+    <string name="action_move_here">Move here</string>
+    <string name="action_copy_here">Copy here</string>
+    <string name="action_new_folder">New folder</string>
+    <string name="action_create">Create</string>
+    <string name="action_favorite">Add to Favourites</string>
+    <string name="action_unfavorite">Remove from Favourites</string>
+    <string name="action_lock">Move to Locked folder</string>
+    <string name="action_unlock_item">Move out of Locked folder</string>
+    <string name="action_trash">Move to Recycle bin</string>
+    <string name="action_restore">Restore</string>
+    <string name="action_delete_forever">Delete forever</string>
+    <string name="action_empty_bin">Empty bin</string>
+    <string name="action_select_all">Select all</string>
+    <string name="action_undo">Undo</string>
+    <string name="action_unlock">Unlock</string>
+    <string name="action_delete">Delete</string>
+    <string name="action_open_settings">Open settings</string>
+    <string name="cd_close_selection">Close selection</string>
+    <string name="cd_selected">Selected</string>
+    <string name="cd_favorite">Favourite</string>
+    <plurals name="selected_count">
+        <item quantity="one">%d selected</item>
+        <item quantity="other">%d selected</item>
+    </plurals>
+
+    <string name="rename_title">Rename</string>
+    <string name="new_folder_title">New folder</string>
+    <string name="name_label">Name</string>
+    <string name="name_error_invalid">Enter a name without “/”</string>
+    <string name="name_error_exists">Something with this name is already here</string>
+    <string name="name_error_failed">Couldn\'t save this name</string>
+
+    <plurals name="transfer_moving">
+        <item quantity="one">Moving %d item</item>
+        <item quantity="other">Moving %d items</item>
+    </plurals>
+    <plurals name="transfer_copying">
+        <item quantity="one">Copying %d item</item>
+        <item quantity="other">Copying %d items</item>
+    </plurals>
+    <string name="transfer_hint">Open the folder to put them in</string>
+
+    <plurals name="op_moved">
+        <item quantity="one">Moved %d item</item>
+        <item quantity="other">Moved %d items</item>
+    </plurals>
+    <plurals name="op_copied">
+        <item quantity="one">Copied %d item</item>
+        <item quantity="other">Copied %d items</item>
+    </plurals>
+    <plurals name="op_trashed">
+        <item quantity="one">Moved %d item to Recycle bin</item>
+        <item quantity="other">Moved %d items to Recycle bin</item>
+    </plurals>
+    <plurals name="op_restored">
+        <item quantity="one">Restored %d item</item>
+        <item quantity="other">Restored %d items</item>
+    </plurals>
+    <plurals name="op_deleted">
+        <item quantity="one">Deleted %d item forever</item>
+        <item quantity="other">Deleted %d items forever</item>
+    </plurals>
+    <plurals name="op_locked">
+        <item quantity="one">Moved %d item to Locked folder</item>
+        <item quantity="other">Moved %d items to Locked folder</item>
+    </plurals>
+    <plurals name="op_unlocked">
+        <item quantity="one">Moved %d item out of Locked folder</item>
+        <item quantity="other">Moved %d items out of Locked folder</item>
+    </plurals>
+    <plurals name="op_favorited">
+        <item quantity="one">Added to Favourites</item>
+        <item quantity="other">Added %d items to Favourites</item>
+    </plurals>
+    <plurals name="op_unfavorited">
+        <item quantity="one">Removed from Favourites</item>
+        <item quantity="other">Removed %d items from Favourites</item>
+    </plurals>
+    <plurals name="op_failed">
+        <item quantity="one">%d item couldn\'t be changed</item>
+        <item quantity="other">%d items couldn\'t be changed</item>
+    </plurals>
+
+    <string name="section_collections">Collections</string>
+    <string name="favorites_title">Favourites</string>
+    <string name="favorites_empty_title">No favourites yet</string>
+    <string name="favorites_empty_body">Add files and folders to Favourites from their menu to find them here quickly.</string>
+    <string name="bin_title">Recycle bin</string>
+    <string name="bin_body">Deleted items are kept for 30 days</string>
+    <string name="bin_empty_title">Recycle bin is empty</string>
+    <string name="bin_empty_body">Deleted files stay here for 30 days, then they\'re removed for good.</string>
+    <plurals name="bin_days_left">
+        <item quantity="one">%d day left</item>
+        <item quantity="other">%d days left</item>
+    </plurals>
+    <string name="bin_from">From %s</string>
+    <plurals name="delete_forever_title">
+        <item quantity="one">Delete %d item forever?</item>
+        <item quantity="other">Delete %d items forever?</item>
+    </plurals>
+    <string name="delete_forever_body">This can\'t be undone.</string>
+    <string name="empty_bin_title">Empty Recycle bin?</string>
+    <string name="empty_bin_body">Everything in the bin will be deleted forever. This can\'t be undone.</string>
+
+    <string name="locked_title">Locked folder</string>
+    <string name="locked_body">Protected with your screen lock</string>
+    <string name="locked_empty_title">Nothing locked yet</string>
+    <string name="locked_empty_body">Move private files here from a file\'s menu. They\'re hidden from other apps and from search.</string>
+    <string name="locked_warning">Locked files are stored only inside Filer. Uninstalling Filer or clearing its storage deletes them.</string>
+    <string name="locked_auth_title">Open Locked folder</string>
+    <string name="locked_auth_subtitle">Confirm it\'s you</string>
+    <string name="locked_closed_title">Locked folder is locked</string>
+    <string name="locked_closed_body">Confirm it\'s you to see your locked files.</string>
+    <string name="locked_no_screen_lock_title">Set a screen lock first</string>
+    <string name="locked_no_screen_lock_body">The Locked folder is protected by your phone\'s PIN, pattern, password or fingerprint.</string>
+    <plurals name="trash_confirm_title">
+        <item quantity="one">Move %d item to the Recycle bin?</item>
+        <item quantity="other">Move %d items to the Recycle bin?</item>
+    </plurals>
+    <string name="trash_confirm_body">You can restore from the Recycle bin for 30 days.</string>
+    <plurals name="lock_confirm_title">
+        <item quantity="one">Move %d item to Locked folder?</item>
+        <item quantity="other">Move %d items to Locked folder?</item>
+    </plurals>
+    <string name="lock_confirm_body">They\'ll be hidden from other apps, from Recent and from search, and need your screen lock to open.\n\nLocked files are stored only inside Filer: uninstalling Filer or clearing its storage deletes them.</string>
+    <plurals name="delete_locked_title">
+        <item quantity="one">Delete %d locked item forever?</item>
+        <item quantity="other">Delete %d locked items forever?</item>
+    </plurals>
+
+    <string name="search_type_empty_title">Nothing here</string>
+    <string name="search_type_empty_body">No files of this type on your phone.</string>
+    <!-- Natural search -->
+    <string name="filter_date_added">Added %s</string>
+    <string name="filter_date_taken">Taken %s</string>
+    <string name="filter_date_modified">Edited %s</string>
+    <string name="filter_size_over">Over %s</string>
+    <string name="filter_size_under">Under %s</string>
+    <string name="filter_size_between">%1$s – %2$s</string>
+    <string name="cd_remove_filter">Remove filter %s</string>
+    <string name="search_notice_around">Nothing from exactly then. Showing files from around that time.</string>
+    <string name="search_notice_no_words">No file names or text mention “%s”. Showing everything else that matches.</string>
+    <string name="place_permission_title">Search photos by place</string>
+    <string name="place_permission_body">Allow Filer to read where your photos were taken. Places are matched on your phone with a built-in list of towns and countries; nothing is sent anywhere.</string>
+    <string name="place_permission_denied">Allow “Access to media location” in Filer\'s app permissions.</string>
+    <string name="action_allow">Allow</string>
+    <string name="action_expand">Expand</string>
+    <string name="action_collapse">Collapse</string>
+    <string name="place_scan_progress">Reading where photos were taken · %1$d of %2$d</string>
+    <string name="search_example_5">pdfs downloaded yesterday</string>
+    <string name="search_example_6">photos from Goa last December</string>
+    <string name="search_example_7">whatsapp images this week</string>
+    <string name="search_example_8">large videos</string>
+    <string name="search_try_filters">Or ask by type, date, app or place</string>
+    <string name="detail_place">Place</string>
+    <string name="geonames_credit">Place names from GeoNames (geonames.org), CC BY 4.0</string>
+    <string name="built_in_viewer">Open files in Filer</string>
+    <string name="built_in_viewer_body">Photos, videos, PDFs, text files and recordings open in Filer\'s viewer, with the AI plugins. Use Open with there to pick another app. Turn off to use your default apps.</string>
+
+    <!-- Developer mode (index with a USB-connected Mac) -->
+    <string name="developer_mode_on">Developer mode on</string>
+    <string name="developer_mode_already_on">Developer mode is already on</string>
+    <string name="section_developer">Developer</string>
+    <string name="index_with_mac">Index with Mac</string>
+    <string name="mac_status_connected">Connected · %1$s · %2$s</string>
+    <string name="mac_status_unreachable">Not reachable — run tools/mac_embedder/run.sh with the phone connected</string>
+    <string name="mac_status_checking">Looking for the Mac…</string>
+    <string name="hero_of_total">of %s files</string>
+    <plurals name="smart_folder_failed">
+        <item quantity="one">1 couldn\'t be read</item>
+        <item quantity="other">%d couldn\'t be read</item>
+    </plurals>
+    <string name="via_mac_started">Indexing via Mac started</string>
+    <string name="via_mac_switched">Already indexing — it switches to the Mac from the next file</string>
+    <string name="via_mac_running">Indexing via Mac · %1$d of %2$d</string>
+    <string name="via_mac_running_rate">Indexing via Mac · %1$d of %2$d · %3$.1f items/s</string>
+    <string name="via_mac_running_phone">Indexing on the phone · %1$d of %2$d</string>
+    <string name="mac_status_off">Off · indexing runs on the phone</string>
+    <string name="mac_status_off_connected">Off · indexing runs on the phone (Mac connected)</string>
+    <string name="mac_status_wrong_model">The Mac runs a different model file (%1$s), so its results wouldn\'t match</string>
+    <string name="mac_status_no_phone_model">Turn on smart search first: searching still needs the model on the phone</string>
+    <string name="index_now_via_mac">Index now via Mac</string>
+    <string name="index_now_via_mac_body">Starts a full pass now, without waiting for the charger</string>
+    <string name="compare_engines">Compare engines</string>
+    <string name="compare_engines_body">Embeds a few indexed passages and photos on the phone and on the Mac</string>
+    <string name="compare_running">Comparing…</string>
+    <string name="compare_title">Phone vs Mac</string>
+    <string name="compare_engine_line">Mac engine: %1$s</string>
+    <string name="compare_kind_passages">Passages (%1$d)</string>
+    <string name="compare_kind_photos">Photos (%1$d)</string>
+    <string name="compare_similarity">Cosine similarity: mean %1$.4f · min %2$.4f</string>
+    <string name="compare_speed">Per item: phone %1$.0f ms · Mac %2$.0f ms (incl. USB)</string>
+    <string name="compare_none">None to compare</string>
+    <string name="compare_error_no_model">The phone\'s model isn\'t ready. Turn on smart search first.</string>
+    <string name="compare_error_no_mac">The Mac isn\'t reachable. Run tools/mac_embedder/run.sh with the phone connected.</string>
+    <string name="compare_error_nothing">Nothing is indexed yet. Index a few files first.</string>
+    <string name="compare_error_failed">The Mac stopped answering during the comparison.</string>
+    <string name="turn_off_developer_mode">Turn off developer mode</string>
+    <string name="action_ok">OK</string>
+    <string name="via_mac_hero">Indexing via Mac</string>
+    <string name="waiting_for_mac_hero">Waiting for the Mac…</string>
+    <string name="via_mac_rate">%1$.1f items/s</string>
+    <string name="via_mac_notification_title">Indexing via Mac · %1$d of %2$d files</string>
+    <string name="engines_title">Vectors by engine</string>
+    <string name="phone_colors">Use phone colours</string>
+    <string name="phone_colors_body">Match your wallpaper. Off: Filer blue</string>
+
+    <!-- One day's files (from Browse › Earlier this week) -->
+    <string name="day_night">Night</string>
+    <string name="day_evening">Evening</string>
+    <string name="day_afternoon">Afternoon</string>
+    <string name="day_morning">Morning</string>
+    <string name="day_early">Early hours</string>
+
+    <!-- Browse home -->
+    <string name="browse_hero_title">Find anything\nby what’s in it.</string>
+    <string name="browse_example_bills">bills from last month</string>
+    <string name="browse_example_photo_text">photos with text</string>
+    <string name="browse_example_pdfs">PDFs from this year</string>
+    <string name="browse_new_today">New today</string>
+    <string name="browse_latest">Latest</string>
+    <string name="browse_this_week">Earlier this week</string>
+    <string name="browse_worth_a_look">Worth a look · Review</string>
+    <string name="browse_your_files">Your files</string>
+    <string name="browse_favorites_short">Starred</string>
+    <string name="browse_locked_short">Locked</string>
+    <string name="browse_bin_short">Bin</string>
+    <plurals name="browse_day_photos">
+        <item quantity="one">%d photo</item>
+        <item quantity="other">%d photos</item>
+    </plurals>
+    <plurals name="browse_day_videos">
+        <item quantity="one">%d video</item>
+        <item quantity="other">%d videos</item>
+    </plurals>
+    <plurals name="browse_day_files">
+        <item quantity="one">%d file</item>
+        <item quantity="other">%d files</item>
+    </plurals>
+</resources>

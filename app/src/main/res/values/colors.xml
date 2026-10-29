@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="background">#004B71</color>
+    <color name="ic_launcher_background">#D6EBFA</color>
+    <color name="primary">#006494</color>
+    <!-- Matches the Compose surface color so launch and activity transitions are seamless. -->
+    <color name="window_background">#F5FAFF</color>
+</resources>

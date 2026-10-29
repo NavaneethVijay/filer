@@ -1,0 +1,26 @@
+# Build output
+build/
+.gradle/
+.kotlin/
+.externalNativeBuild
+.cxx
+/captures
+*.apk
+*.aab
+
+# Local machine
+local.properties
+.DS_Store
+*.iml
+.idea/
+
+# Signing keys (the release key lives in ~/.android, its passwords in ~/.gradle/gradle.properties)
+*.jks
+*.keystore
+
+# Editor and agent tooling
+.vscode/
+.cursor/
+.agents/
+.mcp.json
+mcp_config.json

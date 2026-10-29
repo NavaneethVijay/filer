@@ -1,0 +1,293 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Storage tab: overview, insights, cleanup review, duplicates, space map. -->
+<resources>
+    <string name="tab_storage">Storage</string>
+    <string name="tab_insights">Insights</string>
+
+    <!-- Overview -->
+    <string name="storage_overview_title">Storage</string>
+    <string name="storage_scanned">Scanned %s</string>
+    <string name="storage_first_scan">Working out what uses your space</string>
+    <string name="space_map_loading_files">Reading files…</string>
+    <plurals name="space_map_summary">
+        <item quantity="one">%1$s · %2$s file</item>
+        <item quantity="other">%1$s · %2$s files</item>
+    </plurals>
+    <plurals name="space_map_show_more">
+        <item quantity="one">Show 1 more file</item>
+        <item quantity="other">Show %d more files</item>
+    </plurals>
+    <plurals name="storage_files">
+        <item quantity="one">%s file</item>
+        <item quantity="other">%s files</item>
+    </plurals>
+    <plurals name="storage_scanning_files">
+        <item quantity="one">Scanning… %s file so far</item>
+        <item quantity="other">Scanning… %s files so far</item>
+    </plurals>
+    <string name="storage_scanning_first">Scanning your storage…</string>
+    <string name="storage_finding_duplicates">Looking for duplicates…</string>
+    <string name="storage_used_of">used of %s</string>
+    <string name="storage_free_badge">%s free</string>
+    <string name="storage_system_note">Apps &amp; system space is managed by Android</string>
+    <string name="action_system_storage">System storage</string>
+    <string name="cd_scan_again">Scan again</string>
+    <string name="storage_free_up_label">You can free up</string>
+    <string name="storage_free_up_body">Nothing is deleted until you review it.</string>
+    <string name="storage_nothing_to_clean">Nothing to clean up</string>
+    <string name="storage_nothing_to_clean_body">No large, old or duplicate files stand out right now.</string>
+    <string name="action_review_all">Review all</string>
+    <string name="storage_insights">Insights</string>
+    <string name="storage_biggest_folders">Biggest folders</string>
+    <string name="action_open_space_map">Open space map</string>
+    <string name="storage_bin_body">%s · freed only when emptied</string>
+    <string name="storage_checking">Checking…</string>
+
+    <!-- What uses space -->
+    <string name="space_videos">Videos</string>
+    <string name="space_photos">Photos</string>
+    <string name="space_audio">Audio</string>
+    <string name="space_documents">Docs</string>
+    <string name="space_other">Other</string>
+    <string name="space_apps">Apps &amp; system</string>
+
+    <!-- Where files come from -->
+    <string name="source_camera">Camera</string>
+    <string name="source_whatsapp">WhatsApp</string>
+    <string name="source_telegram">Telegram</string>
+    <string name="source_downloads">Download</string>
+    <string name="source_screenshots">Screenshots</string>
+    <string name="source_screen_recordings">Screen recordings</string>
+    <string name="source_other">Other apps</string>
+
+    <!-- Kinds of clutter -->
+    <string name="cleanup_all">Everything to clean up</string>
+    <string name="cleanup_large">Large files</string>
+    <plurals name="cleanup_large_body">
+        <item quantity="one">%d file over 100 MB</item>
+        <item quantity="other">%d files over 100 MB</item>
+    </plurals>
+    <string name="cleanup_duplicates">Duplicates</string>
+    <plurals name="cleanup_duplicates_body">
+        <item quantity="one">%d extra copy</item>
+        <item quantity="other">%d extra copies</item>
+    </plurals>
+    <string name="cleanup_old_downloads">Old downloads</string>
+    <plurals name="cleanup_old_downloads_body">
+        <item quantity="one">%d file not changed in 6 months</item>
+        <item quantity="other">%d files not changed in 6 months</item>
+    </plurals>
+    <string name="cleanup_chat_media">Chat app media</string>
+    <plurals name="cleanup_chat_media_body">
+        <item quantity="one">%d file received over a month ago</item>
+        <item quantity="other">%d files received over a month ago</item>
+    </plurals>
+    <string name="cleanup_installers">Installer files</string>
+    <plurals name="cleanup_installers_body">
+        <item quantity="one">%d APK file</item>
+        <item quantity="other">%d APK files</item>
+    </plurals>
+    <string name="cleanup_old_screenshots">Old screenshots</string>
+    <plurals name="cleanup_old_screenshots_body">
+        <item quantity="one">%d older than 3 months</item>
+        <item quantity="other">%d older than 3 months</item>
+    </plurals>
+    <string name="cleanup_junk">Junk</string>
+    <plurals name="cleanup_junk_body">
+        <item quantity="one">%d empty folder, temp or log file</item>
+        <item quantity="other">%d empty folders, temp and log files</item>
+    </plurals>
+    <string name="cleanup_similar_photos">Similar shots</string>
+    <plurals name="cleanup_similar_photos_body">
+        <item quantity="one">%d near-identical photo</item>
+        <item quantity="other">%d near-identical photos</item>
+    </plurals>
+    <string name="cleanup_forwards">Forwards</string>
+    <plurals name="cleanup_forwards_body">
+        <item quantity="one">%d greeting, quote or meme</item>
+        <item quantity="other">%d greetings, quotes and memes</item>
+    </plurals>
+    <string name="cleanup_sensitive">Sensitive files</string>
+    <plurals name="cleanup_sensitive_body">
+        <item quantity="one">%d ID or bank paper</item>
+        <item quantity="other">%d IDs and bank papers</item>
+    </plurals>
+    <string name="cleanup_installers_have">%1$s · %2$d for apps you have</string>
+    <string name="cleanup_videos_4k">4K videos</string>
+    <plurals name="cleanup_videos_4k_body">
+        <item quantity="one">%d video recorded in 4K</item>
+        <item quantity="other">%d videos recorded in 4K</item>
+    </plurals>
+
+    <!-- Insights -->
+    <string name="insights_title">Insights</string>
+    <string name="insights_subtitle">How your storage is changing, worked out on this phone</string>
+    <string name="insights_forecast">Forecast</string>
+    <string name="insights_full_by">Full by %s</string>
+    <string name="insights_not_filling">Plenty of room</string>
+    <string name="insights_pace">You add about %s a month.</string>
+    <string name="insights_not_filling_body">At this pace it won\'t fill up in the next 10 years.</string>
+    <string name="insights_buys">Cleaning up %1$s buys you about %2$s more.</string>
+    <plurals name="duration_days">
+        <item quantity="one">%d day</item>
+        <item quantity="other">%d days</item>
+    </plurals>
+    <plurals name="duration_weeks">
+        <item quantity="one">%d week</item>
+        <item quantity="other">%d weeks</item>
+    </plurals>
+    <plurals name="duration_months">
+        <item quantity="one">%d month</item>
+        <item quantity="other">%d months</item>
+    </plurals>
+    <string name="range_six_months">6 months</string>
+    <string name="range_one_year">1 year</string>
+    <string name="range_all_time">All time</string>
+    <string name="insights_capacity">%s full</string>
+    <string name="insights_now">Now</string>
+    <string name="cd_usage_chart">Space used over time, with where it\'s heading</string>
+    <string name="insights_what_grew">What grew</string>
+    <string name="insights_nothing_grew">No new files in this period.</string>
+    <string name="insights_sources">Where new files come from</string>
+    <string name="insights_sources_body">Last 12 months, by size</string>
+    <string name="insights_busiest">Busiest month</string>
+    <string name="insights_busiest_value">%1$s · %2$s</string>
+    <string name="insights_busiest_body">Mostly %s.</string>
+    <string name="insights_month_bars_caption">GB added each month, from the dates on your files</string>
+    <string name="insights_worth_knowing">Worth knowing</string>
+    <string name="insights_estimate_note">Worked out from file dates. Files deleted in the past aren\'t counted, and copied files keep their original date.</string>
+
+    <string name="highlight_growing_fast">Growing fast</string>
+    <string name="highlight_this_month">This month</string>
+    <string name="highlight_this_month_text">%s added the most.</string>
+    <string name="highlight_chat_app">Biggest chat app</string>
+    <string name="highlight_chat_app_text">%s keeps every photo, video and voice note sent to you.</string>
+    <string name="highlight_chat_app_action">Review received media</string>
+    <string name="highlight_forgotten">Forgotten</string>
+    <string name="highlight_forgotten_text">Files in Download you haven\'t changed in 6 months.</string>
+    <string name="highlight_forgotten_action">Review downloads</string>
+    <string name="highlight_4k">4K video</string>
+    <plurals name="highlight_4k_text">
+        <item quantity="one">%d video recorded in 4K. In 1080p it would take about a quarter of the space.</item>
+        <item quantity="other">%d videos recorded in 4K. In 1080p they would take about a quarter of the space.</item>
+    </plurals>
+    <string name="highlight_4k_action">See 4K videos</string>
+    <string name="highlight_screenshots">Screenshots</string>
+    <string name="highlight_screenshots_big">%1$d of %2$d</string>
+    <string name="highlight_screenshots_text">screenshots are older than 3 months.</string>
+    <string name="highlight_screenshots_action">Review screenshots</string>
+    <string name="highlight_duplicates">Duplicates</string>
+    <string name="highlight_duplicates_big">%d%%</string>
+    <string name="highlight_duplicates_text">of the extra copies are in %s.</string>
+    <string name="highlight_duplicates_action">Review duplicates</string>
+
+    <string name="highlight_sensitive">Sensitive files</string>
+    <plurals name="highlight_sensitive_big">
+        <item quantity="one">%d file</item>
+        <item quantity="other">%d files</item>
+    </plurals>
+    <string name="highlight_sensitive_text">Photos that look like IDs, passports or bank papers are where any app with file access can read them.</string>
+    <string name="highlight_similar">Similar shots</string>
+    <plurals name="highlight_similar_text">
+        <item quantity="one">%d group of near-identical photos. Keep the best one.</item>
+        <item quantity="other">%d groups of near-identical photos. Keep the best of each.</item>
+    </plurals>
+    <string name="highlight_similar_action">Review similar shots</string>
+    <string name="highlight_forwards">Forwards</string>
+    <plurals name="highlight_forwards_text">
+        <item quantity="one">%d good-morning image, quote or meme you received.</item>
+        <item quantity="other">%d good-morning images, quotes and memes you received.</item>
+    </plurals>
+    <string name="highlight_forwards_action">Review forwards</string>
+    <string name="highlight_installers">Installers</string>
+    <string name="highlight_installers_big">%1$d of %2$d</string>
+    <string name="highlight_installers_text">installer files are for apps you already have, at the same or a newer version.</string>
+    <string name="highlight_installers_action">Review installers</string>
+    <string name="smart_search_chip">Smart search</string>
+
+    <!-- What's in your files -->
+    <string name="contents_title">What\'s in your files</string>
+    <string name="contents_coverage">From %1$s and %2$s</string>
+    <plurals name="contents_photos">
+        <item quantity="one">%d indexed photo</item>
+        <item quantity="other">%d indexed photos</item>
+    </plurals>
+    <plurals name="contents_documents">
+        <item quantity="one">%d document</item>
+        <item quantity="other">%d documents</item>
+    </plurals>
+    <string name="contents_note">Worked out from what smart search has indexed, so the rest of your phone isn\'t counted.</string>
+    <string name="contents_off">Turn on smart search to see what your files are made of.</string>
+    <string name="contents_not_enough">Index more files with smart search to see what they\'re made of.</string>
+    <string name="contents_preparing">Ready after the next smart search pass.</string>
+    <string name="content_scenery">Scenery &amp; travel</string>
+    <string name="content_people">People</string>
+    <string name="content_food">Food &amp; drink</string>
+    <string name="content_pets">Pets</string>
+    <string name="content_greetings">Greetings &amp; forwards</string>
+    <string name="content_chats">Screenshots of chats</string>
+    <string name="content_documents">Documents &amp; notes</string>
+    <string name="content_receipts">Receipts &amp; bills</string>
+    <string name="content_ids">IDs &amp; bank papers</string>
+    <string name="content_other">Everything else</string>
+
+    <!-- Review -->
+    <string name="review_selected">selected to clean up</string>
+    <string name="review_selected_lock">selected to move to the Locked folder</string>
+    <plurals name="review_files">
+        <item quantity="one">%d file</item>
+        <item quantity="other">%d files</item>
+    </plurals>
+    <string name="action_clear_selection">Clear</string>
+    <string name="review_keep_in_bin">Keeping in Recycle bin for 30 days</string>
+    <string name="review_skip_bin">Deleting for good · frees space now</string>
+    <string name="action_to_bin">To bin</string>
+    <plurals name="review_delete_forever_title">
+        <item quantity="one">Delete %d file for good?</item>
+        <item quantity="other">Delete %d files for good?</item>
+    </plurals>
+    <string name="review_delete_forever_body">This frees %s now and can\'t be undone.</string>
+    <string name="review_empty_title">All cleaned up</string>
+    <string name="review_empty_body">Nothing in this list is left.</string>
+
+    <!-- Duplicates -->
+    <plurals name="duplicates_groups">
+        <item quantity="one">Duplicates · %d group</item>
+        <item quantity="other">Duplicates · %d groups</item>
+    </plurals>
+    <string name="duplicates_rule">Pick which copies to keep. Tap a copy to keep or remove it; long-press one to keep copies in its folder everywhere.</string>
+    <string name="duplicates_rule_smart">Smart pick</string>
+    <string name="duplicates_rule_newest">Keep newest</string>
+    <string name="duplicates_rule_oldest">Keep oldest</string>
+    <string name="duplicates_rule_none">Keep all</string>
+    <string name="duplicates_keep_all">Keep all</string>
+    <string name="duplicates_remove_extras">Remove extras</string>
+    <string name="duplicates_prefer_folder">Keeping the copies in %s</string>
+    <string name="duplicates_prefer_folder_action">Keep copies in this folder</string>
+    <string name="duplicates_last_copy">Keep at least one copy. Tap \"Keep all\" to skip this group.</string>
+    <string name="duplicates_each">%s each</string>
+    <string name="duplicates_frees">frees %s</string>
+    <string name="duplicates_keep">Keep</string>
+    <string name="duplicates_remove">Remove</string>
+    <string name="action_remove_copies">Remove copies</string>
+    <plurals name="duplicates_selected">
+        <item quantity="one">%d copy</item>
+        <item quantity="other">%d copies</item>
+    </plurals>
+    <string name="duplicates_checking">Still comparing files. Duplicates show up here when it\'s done.</string>
+
+    <!-- Space map -->
+    <string name="space_map_title">Space map</string>
+    <string name="space_map_root">Storage</string>
+    <string name="space_map_tap_to_open">tap to open</string>
+    <string name="space_map_folders">Folders</string>
+    <string name="space_map_files">Files</string>
+    <string name="cd_move_folder_to_bin">Move %s to the Recycle bin</string>
+    <string name="space_delete_title_one">Delete %s?</string>
+    <plurals name="space_delete_title">
+        <item quantity="one">Delete %d item?</item>
+        <item quantity="other">Delete %d items?</item>
+    </plurals>
+    <string name="space_delete_bin_body">%s goes to the Recycle bin. It still takes space until the bin is emptied.</string>
+    <string name="space_delete_skip_bin">Delete for good · frees space now</string>
+</resources>

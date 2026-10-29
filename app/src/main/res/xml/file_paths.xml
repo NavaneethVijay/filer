@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths>
+    <!-- Internal shared storage -->
+    <external-path name="storage" path="." />
+    <!-- SD cards and USB drives live outside external-path -->
+    <root-path name="volumes" path="/storage" />
+    <!-- Locked folder (app-private); only ever granted for a single Open -->
+    <files-path name="locked" path="locked/" />
+</paths>
