@@ -67,13 +67,26 @@ enum class IndexKind { PHOTOS, PDFS, TEXT }
 object IndexRules {
     private val textExtensions = setOf(
         // Documents
-        "pdf", "txt", "md", "csv", "tsv", "json", "xml", "rtf", "log", "yaml", "yml", "ini", "conf",
-        "docx", "odt",
+        "pdf", "txt", "md", "csv", "tsv", "rtf", "docx", "odt",
         // Code & scripts
         "kt", "kts", "java", "py", "js", "ts", "jsx", "tsx", "html", "css", "scss",
         "c", "cpp", "h", "hpp", "go", "rs", "sh", "bash", "zsh", "sql"
     )
     private val imageExtensions = setOf("jpg", "jpeg", "png", "webp", "gif", "heic", "heif", "bmp")
+
+    /**
+     * File extensions that should never be embedded by meaning:
+     * logs, app/system configurations, XML markup, diagnostic dumps, and temporary files.
+     * These remain searchable by file name, but are skipped for semantic vector search.
+     */
+    private val excludedExtensions = setOf(
+        // Logs & diagnostic dumps
+        "log", "logs", "logcat", "dump", "dmp", "trace", "crash", "crashlog", "tombstone",
+        // System, app config & data markup
+        "xml", "ini", "conf", "cfg", "prop", "properties", "prefs", "manifest",
+        // Temporary, cache & backup files
+        "tmp", "temp", "bak", "swp", "old", "dat", "bin"
+    )
 
     /** Icons, stickers and thumbnails are tiny; skipping them saves many model runs. */
     private const val MIN_IMAGE_BYTES = 20 * 1024L
@@ -86,12 +99,15 @@ object IndexRules {
     fun kindOf(name: String, mimeType: String, sizeBytes: Long = Long.MAX_VALUE): IndexKind? {
         val ext = name.substringAfterLast('.', "").lowercase()
         if (ext in sensitiveExtensions || name.lowercase() in sensitiveNames) return null
+        if (ext in excludedExtensions) return null
+
         val mime = mimeType.lowercase()
         val isImage = ext in imageExtensions || (mime.startsWith("image/") && mime != "image/svg+xml")
         return when {
             isImage -> IndexKind.PHOTOS.takeIf { sizeBytes >= MIN_IMAGE_BYTES }
             ext == "pdf" || mime == "application/pdf" -> IndexKind.PDFS
-            ext in textExtensions || mime.startsWith("text/") -> IndexKind.TEXT
+            ext in textExtensions -> IndexKind.TEXT
+            mime.startsWith("text/") && mime != "text/xml" && !mime.contains("log") -> IndexKind.TEXT
             else -> null
         }
     }
@@ -104,7 +120,10 @@ object IndexRules {
         kinds: Set<IndexKind> = IndexKind.entries.toSet()
     ): Boolean = kindOf(name, mimeType, sizeBytes) in kinds
 
-    private val skippedDirectories = setOf("cache", "thumbnails", "node_modules", "__pycache__", "build", "venv")
+    private val skippedDirectories = setOf(
+        "cache", "thumbnails", "node_modules", "__pycache__", "build", "venv",
+        "lost.dir", "logs", "log", "crashreports", "crashreport", "crashdumps", "crashdump"
+    )
 
     /** Folders never worth walking: hidden ones (.ssh, .git…), caches and build/dependency output. */
     fun isSkippedDirectory(dir: File): Boolean {

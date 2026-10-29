@@ -38,6 +38,7 @@
     <string name="storage_nothing_to_clean_body">No large, old or duplicate files stand out right now.</string>
     <string name="action_review_all">Review all</string>
     <string name="storage_insights">Insights</string>
+    <string name="storage_clean_up">Clean up</string>
     <string name="storage_biggest_folders">Biggest folders</string>
     <string name="action_open_space_map">Open space map</string>
     <string name="storage_bin_body">%s · freed only when emptied</string>

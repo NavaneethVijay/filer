@@ -180,6 +180,16 @@ private fun LazyListScope.overview(
             HighlightCarousel(highlights, onOpen = { highlight -> highlight.kind?.let(onOpenKind) ?: onOpenInsights() })
         }
     }
+
+    // Every kind with files, each opening its own review list.
+    if (CleanupKind.entries.any { report.bytes(it) > 0 }) {
+        item(key = "cleanup_title") {
+            SectionTitle(stringResource(R.string.storage_clean_up)) {
+                FilledTonalButton(onClick = onReviewAll) { Text(stringResource(R.string.action_review_all)) }
+            }
+        }
+        item(key = "cleanup") { CleanupGrid(report, onOpenKind) }
+    }
     if (binBytes > 0) {
         item(key = "bin") { RecycleBinRow(binBytes, onOpenRecycleBin, onEmptyBin) }
     }

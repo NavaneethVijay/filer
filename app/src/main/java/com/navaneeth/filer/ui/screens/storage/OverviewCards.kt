@@ -10,6 +10,9 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.material3.LocalContentColor
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
@@ -42,6 +45,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.navaneeth.filer.R
+import com.navaneeth.filer.data.analysis.CleanupKind
 import com.navaneeth.filer.data.analysis.FolderNode
 import com.navaneeth.filer.data.analysis.ScanStage
 import com.navaneeth.filer.data.analysis.SpaceType
@@ -260,6 +264,111 @@ fun AllCleanCard() {
             Column {
                 Text(stringResource(R.string.storage_nothing_to_clean), style = ExpressiveType.Section)
                 Text(stringResource(R.string.storage_nothing_to_clean_body), style = MaterialTheme.typography.bodyMedium)
+            }
+        }
+    }
+}
+
+/**
+ * The Clean up bento: one tile per kind that has files, largest first. Kinds go in threes, a tall
+ * tile beside two stacked ones (the tall side swapping each block); a leftover pair sits side by
+ * side and a leftover single spans the row.
+ */
+@Composable
+fun CleanupGrid(report: VolumeReport, onOpenKind: (CleanupKind) -> Unit) {
+    val tiles = CleanupKind.entries
+        .map { CleanupEntry(it, report.bytes(it), report.files(it).size) }
+        .filter { it.bytes > 0 }
+        .sortedByDescending { it.bytes }
+    Column(verticalArrangement = Arrangement.spacedBy(BentoGap)) {
+        tiles.chunked(3).forEachIndexed { block, group ->
+            when (group.size) {
+                3 -> Row(Modifier.height(SmallTileHeight * 2 + BentoGap), horizontalArrangement = Arrangement.spacedBy(BentoGap)) {
+                    val tall = @Composable { CleanupTile(group[0], TileSize.TALL, onOpenKind, Modifier.weight(1f).fillMaxHeight()) }
+                    val stacked = @Composable {
+                        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(BentoGap)) {
+                            CleanupTile(group[1], TileSize.SMALL, onOpenKind, Modifier.fillMaxWidth().weight(1f))
+                            CleanupTile(group[2], TileSize.SMALL, onOpenKind, Modifier.fillMaxWidth().weight(1f))
+                        }
+                    }
+                    if (block % 2 == 0) { tall(); stacked() } else { stacked(); tall() }
+                }
+                2 -> Row(Modifier.height(SmallTileHeight), horizontalArrangement = Arrangement.spacedBy(BentoGap)) {
+                    group.forEach { CleanupTile(it, TileSize.SMALL, onOpenKind, Modifier.weight(1f).fillMaxHeight()) }
+                }
+                else -> CleanupTile(group[0], TileSize.WIDE, onOpenKind, Modifier.fillMaxWidth())
+            }
+        }
+    }
+}
+
+private class CleanupEntry(val kind: CleanupKind, val bytes: Long, val count: Int)
+
+private enum class TileSize { TALL, SMALL, WIDE }
+
+private val BentoGap = 8.dp
+private val SmallTileHeight = 152.dp
+
+/** A bento tile: the tall one is tinted and roomier; the wide one lays out in a row. */
+@Composable
+private fun CleanupTile(entry: CleanupEntry, size: TileSize, onOpenKind: (CleanupKind) -> Unit, modifier: Modifier = Modifier) {
+    val context = LocalContext.current
+    val look = entry.kind.look
+    val palette = look.accent.colors()
+    val tall = size == TileSize.TALL
+    val title = @Composable {
+        Text(stringResource(look.title), style = MaterialTheme.typography.titleSmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
+    }
+    val number = @Composable { Text(context.bytes(entry.bytes), style = ExpressiveType.Number, maxLines = 1) }
+    val count = @Composable {
+        Text(
+            pluralStringResource(look.body, entry.count, entry.count),
+            style = MaterialTheme.typography.bodySmall,
+            color = LocalContentColor.current.copy(alpha = 0.75f),
+            maxLines = if (tall) 2 else 1,
+            overflow = TextOverflow.Ellipsis
+        )
+    }
+    Surface(
+        onClick = { onOpenKind(entry.kind) },
+        shape = RoundedCornerShape(28.dp),
+        color = if (tall) palette.container else MaterialTheme.colorScheme.surfaceContainerLow,
+        contentColor = if (tall) palette.onContainer else MaterialTheme.colorScheme.onSurface,
+        modifier = modifier
+    ) {
+        if (size == TileSize.WIDE) {
+            Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                ShapedIcon(look.icon, look.shape, palette.container, palette.onContainer, size = 48.dp, iconSize = 24.dp)
+                Column(Modifier.weight(1f)) { title(); count() }
+                number()
+            }
+        } else {
+            Box {
+                if (tall) {
+                    // A big soft shape peeking in from the corner, like the other hero cards.
+                    Box(
+                        Modifier
+                            .align(Alignment.TopEnd)
+                            .offset(x = 44.dp, y = (-40).dp)
+                            .size(150.dp)
+                            .clip(look.shape)
+                            .background(palette.strong.copy(alpha = 0.12f))
+                    )
+                }
+                Column(Modifier.fillMaxSize().padding(16.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        if (tall) {
+                            ShapedIcon(look.icon, look.shape, palette.strong, palette.onStrong, size = 56.dp, iconSize = 28.dp)
+                        } else {
+                            ShapedIcon(look.icon, look.shape, palette.container, palette.onContainer, size = 36.dp, iconSize = 18.dp)
+                        }
+                        if (entry.kind.fromSmartSearch) SmartSearchChip()
+                    }
+                    Spacer(Modifier.weight(1f))
+                    title()
+                    number()
+                    count()
+                }
             }
         }
     }

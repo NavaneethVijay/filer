@@ -3,6 +3,7 @@ package com.navaneeth.filer.ui.screens.storage
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
 import androidx.compose.material.icons.automirrored.rounded.ArrowForward
@@ -157,22 +158,25 @@ private fun Highlight.text(): HighlightText {
 @Composable
 fun HighlightCarousel(highlights: List<Highlight>, onOpen: (Highlight) -> Unit, modifier: Modifier = Modifier) {
     val state = rememberCarouselState { highlights.size }
-    HorizontalMultiBrowseCarousel(
-        state = state,
-        preferredItemWidth = 264.dp,
-        itemSpacing = 8.dp,
-        modifier = modifier.fillMaxWidth().height(CardHeight)
-    ) { index ->
-        val highlight = highlights[index]
-        val info = carouselItemInfo
-        val shown = if (info.maxSize > 0f) ((info.size - info.minSize) / (info.maxSize - info.minSize)).coerceIn(0f, 1f) else 1f
-        HighlightCard(
-            highlight = highlight,
-            index = index,
-            contentAlpha = shown,
-            onOpen = { onOpen(highlight) },
-            modifier = Modifier.fillMaxSize().maskClip(CardShapes[index % CardShapes.size])
-        )
+    // One card takes most of the row and the next peeks in, rather than three narrow ones.
+    BoxWithConstraints(modifier.fillMaxWidth()) {
+        HorizontalMultiBrowseCarousel(
+            state = state,
+            preferredItemWidth = maxWidth - PeekWidth,
+            itemSpacing = 8.dp,
+            modifier = Modifier.fillMaxWidth().height(CardHeight)
+        ) { index ->
+            val highlight = highlights[index]
+            val info = carouselItemInfo
+            val shown = if (info.maxSize > 0f) ((info.size - info.minSize) / (info.maxSize - info.minSize)).coerceIn(0f, 1f) else 1f
+            HighlightCard(
+                highlight = highlight,
+                index = index,
+                contentAlpha = shown,
+                onOpen = { onOpen(highlight) },
+                modifier = Modifier.fillMaxSize().maskClip(CardShapes[index % CardShapes.size])
+            )
+        }
     }
 }
 
@@ -223,6 +227,8 @@ private fun HighlightCard(highlight: Highlight, index: Int, contentAlpha: Float,
 }
 
 private val CardHeight = 248.dp
+/** Room left beside the main card for the next one to peek in. */
+private val PeekWidth = 56.dp
 /** Card outlines, one corner tucked in differently on each, so the row has rhythm. */
 private val CardShapes = listOf(
     RoundedCornerShape(32.dp),

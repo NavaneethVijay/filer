@@ -43,7 +43,7 @@ class LocalFolderCrawler {
             val children = dir.listFiles() ?: continue
             for (file in children) {
                 if (file.isDirectory) {
-                    val appData = wholeVolume && dir == root && file.name == "Android"
+                    val appData = wholeVolume && dir == root && file.name.equals("Android", ignoreCase = true)
                     if (!appData && !IndexRules.isSkippedDirectory(file)) stack.add(file)
                 } else if (!file.name.startsWith(".")) {
                     val mimeType = Storage.mimeTypeOf(file.name)
