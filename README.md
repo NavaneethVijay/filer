@@ -100,7 +100,7 @@ New plugins follow the same pattern: an `AiPlugin` entry with its model files an
 
 ### On a phone (APK)
 
-1. Get `app-arm64-v8a-release.apk` (almost every current phone is arm64; use `armeabi-v7a` for
+1. Download the latest `arm64-v8a` APK from the [Releases](https://github.com/NavaneethVijay/filer/releases) page (almost every current phone is arm64; use `armeabi-v7a` for
    older 32-bit phones).
 2. Open it on the phone and allow *Install unknown apps* for your browser or file manager when
    asked, or from a computer: `adb install -r app-arm64-v8a-release.apk`.

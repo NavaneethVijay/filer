@@ -1,0 +1,117 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: 'Release tag (e.g. v1.0.1)'
+        required: true
+        default: 'v1.0.0'
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    name: Build & Release APK
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          cache: 'gradle'
+
+      - name: Determine version
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            TAG="${{ inputs.tag_name }}"
+          else
+            TAG="${{ github.ref_name }}"
+          fi
+          # Strip leading 'v' if present (e.g. v1.0.0 -> 1.0.0)
+          VERSION_NAME="${TAG#v}"
+          VERSION_CODE="${{ github.run_number }}"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "version_name=$VERSION_NAME" >> "$GITHUB_OUTPUT"
+          echo "version_code=$VERSION_CODE" >> "$GITHUB_OUTPUT"
+          echo "Building Filer version: $VERSION_NAME (code: $VERSION_CODE, tag: $TAG)"
+
+      - name: Validate Release Secrets
+        run: |
+          MISSING=()
+          [ -z "${{ secrets.FILER_RELEASE_KEYSTORE_BASE64 }}" ] && MISSING+=("FILER_RELEASE_KEYSTORE_BASE64")
+          [ -z "${{ secrets.FILER_RELEASE_STORE_PASSWORD }}" ] && MISSING+=("FILER_RELEASE_STORE_PASSWORD")
+          [ -z "${{ secrets.FILER_RELEASE_KEY_ALIAS }}" ] && MISSING+=("FILER_RELEASE_KEY_ALIAS")
+          [ -z "${{ secrets.FILER_RELEASE_KEY_PASSWORD }}" ] && MISSING+=("FILER_RELEASE_KEY_PASSWORD")
+
+          if [ ${#MISSING[@]} -gt 0 ]; then
+            echo "::error::Missing required repository secrets: ${MISSING[*]}"
+            echo "Please configure these secrets in Settings > Secrets and variables > Actions."
+            exit 1
+          fi
+
+      - name: Decode Keystore
+        run: |
+          echo "${{ secrets.FILER_RELEASE_KEYSTORE_BASE64 }}" | base64 --decode > "${{ runner.temp }}/filer-release.jks"
+
+      - name: Make gradlew executable
+        run: chmod +x gradlew
+
+      - name: Build Release APKs
+        run: |
+          ./gradlew :app:assembleRelease \
+            -PversionName="${{ steps.version.outputs.version_name }}" \
+            -PversionCode="${{ steps.version.outputs.version_code }}" \
+            -PFILER_RELEASE_STORE_FILE="${{ runner.temp }}/filer-release.jks" \
+            -PFILER_RELEASE_STORE_PASSWORD="${{ secrets.FILER_RELEASE_STORE_PASSWORD }}" \
+            -PFILER_RELEASE_KEY_ALIAS="${{ secrets.FILER_RELEASE_KEY_ALIAS }}" \
+            -PFILER_RELEASE_KEY_PASSWORD="${{ secrets.FILER_RELEASE_KEY_PASSWORD }}"
+
+      - name: Clean up Keystore
+        if: always()
+        run: rm -f "${{ runner.temp }}/filer-release.jks"
+
+      - name: Package APKs for Release
+        id: package
+        run: |
+          TAG="${{ steps.version.outputs.tag }}"
+          mkdir -p release-apks
+          cp app/build/outputs/apk/release/app-arm64-v8a-release.apk "release-apks/Filer-${TAG}-arm64-v8a.apk"
+          cp app/build/outputs/apk/release/app-armeabi-v7a-release.apk "release-apks/Filer-${TAG}-armeabi-v7a.apk"
+          cp app/build/outputs/apk/release/app-x86_64-release.apk "release-apks/Filer-${TAG}-x86_64.apk"
+          ls -la release-apks/
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          target_commitish: ${{ github.sha }}
+          name: Filer ${{ steps.version.outputs.tag }}
+          files: release-apks/*.apk
+          generate_release_notes: true
+          draft: false
+          prerelease: false
+          body: |
+            ### Download Filer
+
+            | Architecture | APK | Notes |
+            | :--- | :--- | :--- |
+            | **arm64-v8a** | **`Filer-${{ steps.version.outputs.tag }}-arm64-v8a.apk`** | **Recommended** — covers virtually all modern 64-bit Android phones (Pixel, Samsung, OnePlus, Xiaomi, etc.) |
+            | **armeabi-v7a** | `Filer-${{ steps.version.outputs.tag }}-armeabi-v7a.apk` | For older 32-bit Android phones |
+            | **x86_64** | `Filer-${{ steps.version.outputs.tag }}-x86_64.apk` | For Android emulators and Chromebooks |
+
+            #### How to Install
+            1. Download the **`arm64-v8a`** APK onto your phone.
+            2. Open the downloaded file and allow **"Install unknown apps"** when prompted by your browser or file manager.
+            3. Open Filer and grant **All files access** to browse and search your files.
+            4. *(Optional)* Turn on smart search in Settings to download the offline search model (EmbeddingGemma 2).
