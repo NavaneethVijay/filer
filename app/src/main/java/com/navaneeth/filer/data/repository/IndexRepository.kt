@@ -65,6 +65,60 @@ import kotlinx.coroutines.sync.withLock
 
 private const val TAG = "IndexRepository"
 
+/** Detailed timing profile for a single indexed file. */
+data class FileProfile(
+    val fileName: String = "",
+    val isImage: Boolean = false,
+    val totalMs: Long = 0L,
+    val prepMs: Long = 0L,      // image decode or document text extraction
+    val thermalMs: Long = 0L,   // thermal capacity wait / duty cycle rest
+    val inferMs: Long = 0L,     // neural model embedding inference
+    val dbMs: Long = 0L         // SQLite transaction & hash calculation
+)
+
+/** Real-time profiling metrics and averages across the current indexing pass. */
+data class IndexProfiling(
+    val lastFile: FileProfile? = null,
+    val avgPhotoMs: Long = 0L,
+    val avgDocMs: Long = 0L,
+    val photoCount: Int = 0,
+    val docCount: Int = 0,
+    val recentProfiles: List<FileProfile> = emptyList()
+)
+
+class IndexProfilingTracker {
+    private var photoTotalMs = 0L
+    private var photoCount = 0
+    private var docTotalMs = 0L
+    private var docCount = 0
+    private var lastFileProfile: FileProfile? = null
+    private val recent = ArrayDeque<FileProfile>()
+
+    fun record(profile: FileProfile) {
+        lastFileProfile = profile
+        if (profile.isImage) {
+            photoTotalMs += profile.totalMs
+            photoCount++
+        } else {
+            docTotalMs += profile.totalMs
+            docCount++
+        }
+        if (recent.size >= 8) {
+            recent.removeFirst()
+        }
+        recent.addLast(profile)
+    }
+
+    fun snapshot(): IndexProfiling = IndexProfiling(
+        lastFile = lastFileProfile,
+        avgPhotoMs = if (photoCount > 0) photoTotalMs / photoCount else 0L,
+        avgDocMs = if (docCount > 0) docTotalMs / docCount else 0L,
+        photoCount = photoCount,
+        docCount = docCount,
+        recentProfiles = recent.reversed()
+    )
+}
+
 data class IndexProgress(
     val isRunning: Boolean = false,
     val isPaused: Boolean = false,
@@ -79,7 +133,9 @@ data class IndexProgress(
     /** Passages and photos embedded per second. */
     val itemsPerSec: Float = 0f,
     /** Developer mode: the Mac stopped answering; the pass waits for it (see [IndexingPolicy]). */
-    val waitingForMac: Boolean = false
+    val waitingForMac: Boolean = false,
+    /** Real-time profiling measurements for each stage per file. */
+    val profiling: IndexProfiling = IndexProfiling()
 )
 
 class IndexRepository(private val context: Context) {
@@ -87,6 +143,12 @@ class IndexRepository(private val context: Context) {
     companion object {
         @Volatile
         private var INSTANCE: IndexRepository? = null
+
+        /**
+         * Pass 2: Maximum photos to embed in a single on-phone CPU pass while running on battery.
+         * Keeps phone cool and battery fresh; remaining archive photos are deferred to Pass 3 (charging).
+         */
+        const val MAX_BATTERY_PHOTOS_PER_PASS = 10
 
         fun getInstance(context: Context): IndexRepository {
             return INSTANCE ?: synchronized(this) {
@@ -472,6 +534,9 @@ class IndexRepository(private val context: Context) {
         gone.chunked(DISCOVERY_BATCH).forEach { batch -> db.withTransaction { fileDao.deleteFilesByIds(batch) } }
         if (gone.isNotEmpty() || stripped.isNotEmpty()) VectorIndex.invalidate()
         if (stripped.isNotEmpty()) compactDatabase()
+
+        // Pass 1: Catalog EXIF places & dates in background without requiring neural model
+        com.navaneeth.filer.data.places.PlaceScanWorker.enqueue(context)
     }
 
     /**
@@ -480,14 +545,16 @@ class IndexRepository(private val context: Context) {
      */
     suspend fun runFullIndex(
         reindexAll: Boolean = false,
+        isUserRequested: Boolean = false,
         onReset: () -> Unit = {},
         onProgress: ((IndexProgress) -> Unit)? = null
     ) = withContext(Dispatchers.IO) {
-        passLock.withLock { runPass(reindexAll, onReset, onProgress) }
+        passLock.withLock { runPass(reindexAll, isUserRequested, onReset, onProgress) }
     }
 
     private suspend fun runPass(
         reindexAll: Boolean,
+        isUserRequested: Boolean,
         onReset: () -> Unit,
         onProgress: ((IndexProgress) -> Unit)?
     ): Unit = coroutineScope {
@@ -520,6 +587,8 @@ class IndexRepository(private val context: Context) {
         val batchSize = 15
         var batchHasChanges = false
         var embeddedItems = 0
+        var photosEmbeddedOnBattery = 0
+        val profilingTracker = IndexProfilingTracker()
 
         if (total == 0) {
             syncPluginText()
@@ -640,6 +709,18 @@ class IndexRepository(private val context: Context) {
                     }
                 }
 
+                // Pass 2 budget: on battery without Mac, process up to MAX_BATTERY_PHOTOS_PER_PASS
+                // for automatic background passes so the phone doesn't heat up or drain battery.
+                // If explicitly requested by user ("Index now"), allow indexing all files with thermal pacing.
+                val isPhoto = isImage(file)
+                val onBatteryPhone = !useMac && !thermal.isCharging()
+                if (isPhoto && onBatteryPhone && !isUserRequested && photosEmbeddedOnBattery >= MAX_BATTERY_PHOTOS_PER_PASS) {
+                    Log.i("FilerProfiler", "[3-Pass] Pass 2 session limit reached ($photosEmbeddedOnBattery photos on battery). Deferring photo to Pass 3 (charging).")
+                    leftForLater += file.id
+                    index++
+                    continue
+                }
+
                 // Time spent paused doesn't count; a few files in, the rate is steady enough to estimate.
                 val elapsedSec = ((System.currentTimeMillis() - startTime - pausedMs) / 1000f).coerceAtLeast(0.1f)
                 val throughput = if (processed > 0) processed / elapsedSec else 0f
@@ -657,7 +738,8 @@ class IndexRepository(private val context: Context) {
                     throughputFilesPerSec = throughput,
                     etaSeconds = etaSec,
                     viaMac = useMac,
-                    itemsPerSec = embeddedItems / elapsedSec
+                    itemsPerSec = embeddedItems / elapsedSec,
+                    profiling = profilingTracker.snapshot()
                 )
                 _globalProgress.value = curProgress
                 onProgress?.invoke(curProgress)
@@ -665,21 +747,33 @@ class IndexRepository(private val context: Context) {
                 // Null when the file was settled another way (unreadable or failed).
                 var outcome: FileVectors? = null
                 try {
+                    val tPrepStart = SystemClock.elapsedRealtime()
                     val decoded = if (isImage(file)) {
                         prefetch?.takeIf { it.first == file.id }?.second?.await()
                             ?: embedder.decodeForEmbedding(Uri.parse(file.uri))
                     } else {
                         null
                     }
+                    val prepMs = if (isImage(file)) SystemClock.elapsedRealtime() - tPrepStart else 0L
+
                     val next = batch.getOrNull(index + 1)?.takeIf(::isImage)
                     if (prefetch?.first != next?.id) {
                         prefetch?.second?.cancel()
                         prefetch = next?.let { it.id to async { embedder.decodeForEmbedding(Uri.parse(it.uri)) } }
                     }
 
-                    outcome = processSingleFile(file, decoded, useMac)
+                    val (fileOutcome, profile) = processSingleFile(file, decoded, prepMs, useMac)
+                    outcome = fileOutcome
                     if (outcome is FileVectors.Ready) {
                         embeddedItems += outcome.embeddings.size
+                        if (isPhoto && onBatteryPhone) {
+                            photosEmbeddedOnBattery++
+                        }
+                        profile?.let { prof ->
+                            profilingTracker.record(prof)
+                            val tag = if (prof.isImage) "Photo" else "Doc"
+                            Log.i("FilerProfiler", "[$tag] total=${prof.totalMs}ms | prep=${prof.prepMs}ms | thermal=${prof.thermalMs}ms | model=${prof.inferMs}ms | db=${prof.dbMs}ms")
+                        }
                         // Re-embedding replaced all its passages: the plugins' text goes back in below.
                         Uri.parse(file.uri).path?.let { pluginDao.markUnindexed(it) }
                         batchHasChanges = true
@@ -762,10 +856,21 @@ class IndexRepository(private val context: Context) {
             status = endReason ?: if (isCancelled.get()) "CANCELLED" else "COMPLETED"
         )
 
-        _globalProgress.value = IndexProgress(isRunning = false, isPaused = false, processedCount = processed, totalCount = total)
+        _globalProgress.value = IndexProgress(
+            isRunning = false,
+            isPaused = false,
+            processedCount = processed,
+            totalCount = total,
+            profiling = profilingTracker.snapshot()
+        )
         // A rebuild rewrites every vector; give the freed pages back so the index doesn't look doubled.
         if (reindexAll) compactDatabase()
         if (endReason == null && !isCancelled.get()) _passFinished.tryEmit(Unit)
+
+        // Pass 3: If pending files remain (e.g. archive photos deferred on battery), queue background charging pass
+        if (!isCancelled.get() && fileDao.getPendingFiles(limit = 1).isNotEmpty()) {
+            com.navaneeth.filer.data.worker.IndexingWorker.enqueue(context, userRequested = false, requireCharging = true)
+        }
     }
 
     /**
@@ -868,20 +973,33 @@ class IndexRepository(private val context: Context) {
      * Writes only when every vector is real and from one engine ([IndexingPolicy.canSave]);
      * any other result leaves the file exactly as it was.
      */
-    private suspend fun processSingleFile(file: FileEntity, decodedImage: Bitmap?, useMac: Boolean): FileVectors {
+    private suspend fun processSingleFile(
+        file: FileEntity,
+        decodedImage: Bitmap?,
+        prepMs: Long,
+        useMac: Boolean
+    ): Pair<FileVectors, FileProfile?> {
         val uri = Uri.parse(file.uri)
         if (isImage(file)) {
             if (decodedImage == null) {
                 // With the model ready, a photo that can't be decoded would get no vector; record it
                 // as unreadable (retried when the file changes) instead.
                 if (embedder.isModelLoaded()) throw UnreadableFileException(UnreadableFileException.UNREADABLE)
-                return FileVectors.ModelUnavailable
+                return FileVectors.ModelUnavailable to null
             }
+            val tThermStart = SystemClock.elapsedRealtime()
             thermal.awaitCapacity(routineRests = !useMac)
+            val thermalMs = SystemClock.elapsedRealtime() - tThermStart
+
+            val tInferStart = SystemClock.elapsedRealtime()
             val result = embedder.embedPhoto(decodedImage, useMac)
-            if (result !is FileVectors.Ready) return result
-            if (!IndexingPolicy.canSave(expected = 1, result.embeddings)) return FileVectors.NoVector
+            val inferMs = SystemClock.elapsedRealtime() - tInferStart
+
+            if (result !is FileVectors.Ready) return result to null
+            if (!IndexingPolicy.canSave(expected = 1, result.embeddings)) return FileVectors.NoVector to null
             val embedding = result.embeddings.single()
+
+            val tDbStart = SystemClock.elapsedRealtime()
             val contentHash = uri.path?.let { ContentHasher.computeFastHash(File(it), file.sizeBytes).ifEmpty { null } }
             db.withTransaction {
                 chunkDao.deleteChunksForFile(file.id)
@@ -905,28 +1023,57 @@ class IndexRepository(private val context: Context) {
                     contentHash = contentHash
                 )
             }
-            return result
+            val dbMs = SystemClock.elapsedRealtime() - tDbStart
+            val totalMs = prepMs + thermalMs + inferMs + dbMs
+            val profile = FileProfile(
+                fileName = file.displayName,
+                isImage = true,
+                totalMs = totalMs,
+                prepMs = prepMs,
+                thermalMs = thermalMs,
+                inferMs = inferMs,
+                dbMs = dbMs
+            )
+            return result to profile
         } else {
             val ext = file.displayName.substringAfterLast('.', "").lowercase()
+            val tExtractStart = SystemClock.elapsedRealtime()
             val chunks = when (ext) {
                 "pdf" -> pdfExtractor.extract(uri)
                 in OfficeTextExtractor.EXTENSIONS -> officeExtractor.extract(uri, ext)
                 else -> plainTextExtractor.extract(uri, file.sizeBytes)
             }
+            val extractMs = SystemClock.elapsedRealtime() - tExtractStart
+
             // All of a file's passages in one go (one request when the Mac runs the model).
             val toEmbed = chunks.withIndex().filter { it.value.embed }
-            if (toEmbed.isNotEmpty()) thermal.awaitCapacity(routineRests = !useMac)
+            var thermalMs = 0L
+            val tThermStart = SystemClock.elapsedRealtime()
+            if (toEmbed.isNotEmpty()) {
+                thermal.awaitCapacity(routineRests = !useMac)
+                thermalMs += SystemClock.elapsedRealtime() - tThermStart
+            }
             var chunkIdx = 0
+            var chunkThermalMs = 0L
+            val tInferStart = SystemClock.elapsedRealtime()
             val result = embedder.embedDocuments(
                 texts = toEmbed.map { it.value.text },
                 useMac = useMac,
                 beforeEachOnPhone = {
+                    val t0 = SystemClock.elapsedRealtime()
                     if (++chunkIdx > 1 && chunkIdx % 4 == 0) thermal.awaitCapacity(routineRests = !useMac)
+                    chunkThermalMs += SystemClock.elapsedRealtime() - t0
                 }
             )
-            if (result !is FileVectors.Ready) return result
-            if (!IndexingPolicy.canSave(expected = toEmbed.size, result.embeddings)) return FileVectors.NoVector
+            val inferBlockElapsed = SystemClock.elapsedRealtime() - tInferStart
+            val inferMs = (inferBlockElapsed - chunkThermalMs).coerceAtLeast(0L)
+            thermalMs += chunkThermalMs
+
+            if (result !is FileVectors.Ready) return result to null
+            if (!IndexingPolicy.canSave(expected = toEmbed.size, result.embeddings)) return FileVectors.NoVector to null
             val byChunk = toEmbed.map { it.index }.zip(result.embeddings).toMap()
+
+            val tDbStart = SystemClock.elapsedRealtime()
             val contentHash = uri.path?.let { ContentHasher.computeFastHash(File(it), file.sizeBytes).ifEmpty { null } }
             db.withTransaction {
                 chunkDao.deleteChunksForFile(file.id)
@@ -962,7 +1109,18 @@ class IndexRepository(private val context: Context) {
                     contentHash = contentHash
                 )
             }
-            return result
+            val dbMs = SystemClock.elapsedRealtime() - tDbStart
+            val totalMs = extractMs + thermalMs + inferMs + dbMs
+            val profile = FileProfile(
+                fileName = file.displayName,
+                isImage = false,
+                totalMs = totalMs,
+                prepMs = extractMs,
+                thermalMs = thermalMs,
+                inferMs = inferMs,
+                dbMs = dbMs
+            )
+            return result to profile
         }
     }
 
@@ -982,6 +1140,10 @@ class IndexRepository(private val context: Context) {
         prefs.isIndexingPausedByUser = false
         isCancelled.set(true)
         _globalProgress.value = _globalProgress.value.copy(isRunning = false, isPaused = false)
+    }
+
+    suspend fun hasPendingFiles(): Boolean = withContext(Dispatchers.IO) {
+        fileDao.getPendingFilesCount() > 0
     }
 
     suspend fun pruneFile(fileId: Long) = withContext(Dispatchers.IO) {
@@ -1009,17 +1171,26 @@ class IndexRepository(private val context: Context) {
     }
 
     suspend fun clearEntireIndex() = withContext(Dispatchers.IO) {
-        embeddingDao.deleteAll()
-        chunkDao.deleteAllChunks()
-        fileDao.deleteAllFiles()
-        VectorIndex.invalidate()
-        telemetryDao.logActivity(
-            ActivityLogEntity(
-                action = "CLEAR_INDEX",
-                details = "User cleared search index database"
-            )
-        )
-        compactDatabase()
+        cancel()
+        com.navaneeth.filer.data.worker.IndexingWorker.cancel(context)
+        passLock.withLock {
+            discoveryLock.withLock {
+                db.withTransaction {
+                    embeddingDao.deleteAll()
+                    chunkDao.deleteAllChunks()
+                    fileDao.deleteAllFiles()
+                    val sqlite = db.openHelper.writableDatabase
+                    sqlite.execSQL("DELETE FROM chunks_fts")
+                    sqlite.execSQL("DELETE FROM files_fts")
+                    sqlite.execSQL("DELETE FROM activity_logs")
+                    sqlite.execSQL("DELETE FROM index_runs")
+                }
+            }
+            VectorIndex.release()
+            VectorIndex.invalidate()
+            compactDatabase()
+            _globalProgress.value = IndexProgress(isRunning = false, isPaused = false, processedCount = 0, totalCount = 0)
+        }
     }
 
     /**
@@ -1029,8 +1200,24 @@ class IndexRepository(private val context: Context) {
     private fun compactDatabase() {
         runCatching {
             val sqlite = db.openHelper.writableDatabase
-            sqlite.query("PRAGMA wal_checkpoint(TRUNCATE)").close()
-            sqlite.execSQL("VACUUM")
+            // Checkpoint and truncate the WAL journal to 0 bytes (cursor must be stepped via moveToFirst)
+            sqlite.query("PRAGMA wal_checkpoint(TRUNCATE)").use { it.moveToFirst() }
+            if (!sqlite.inTransaction()) {
+                var vacuumed = false
+                for (attempt in 1..3) {
+                    try {
+                        sqlite.execSQL("VACUUM")
+                        vacuumed = true
+                        break
+                    } catch (e: Exception) {
+                        Log.d(TAG, "VACUUM attempt $attempt delayed: ${e.message}")
+                        Thread.sleep(50L * attempt)
+                    }
+                }
+                if (vacuumed) {
+                    sqlite.query("PRAGMA wal_checkpoint(TRUNCATE)").use { it.moveToFirst() }
+                }
+            }
         }.onFailure { Log.w(TAG, "Database compaction failed", it) }
     }
 

@@ -25,6 +25,7 @@ import androidx.compose.material.icons.rounded.Analytics
 import androidx.compose.material.icons.rounded.AutoAwesome
 import androidx.compose.material.icons.rounded.Extension
 import androidx.compose.material.icons.rounded.BatteryChargingFull
+import androidx.compose.material.icons.rounded.Bolt
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.DeleteSweep
 import androidx.compose.material.icons.rounded.Folder
@@ -123,6 +124,11 @@ fun SettingsScreen(
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
     val versionName = remember {
         runCatching { context.packageManager.getPackageInfo(context.packageName, 0).versionName }.getOrNull().orEmpty()
+    }
+    val powerManager = remember(context) { context.getSystemService(android.os.PowerManager::class.java) }
+    var isUnrestricted by remember { mutableStateOf(powerManager?.isIgnoringBatteryOptimizations(context.packageName) == true) }
+    androidx.lifecycle.compose.LifecycleEventEffect(androidx.lifecycle.Lifecycle.Event.ON_RESUME) {
+        isUnrestricted = powerManager?.isIgnoringBatteryOptimizations(context.packageName) == true
     }
 
     Scaffold(
@@ -284,6 +290,30 @@ fun SettingsScreen(
                                 title = stringResource(R.string.charging_only),
                                 checked = chargingOnly,
                                 onCheckedChange = { haptics.toggle(it); settings.setChargingOnly(it) }
+                            )
+                            GroupDivider()
+                            SwitchRow(
+                                icon = Icons.Rounded.Bolt,
+                                title = stringResource(R.string.unrestricted_battery),
+                                subtitle = stringResource(R.string.unrestricted_battery_body),
+                                checked = isUnrestricted,
+                                onCheckedChange = {
+                                    haptics.toggle(it)
+                                    if (!isUnrestricted) {
+                                        try {
+                                            val intent = android.content.Intent(android.provider.Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
+                                                data = android.net.Uri.parse("package:${context.packageName}")
+                                            }
+                                            context.startActivity(intent)
+                                        } catch (_: Exception) {
+                                            val intent = android.content.Intent(android.provider.Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS)
+                                            context.startActivity(intent)
+                                        }
+                                    } else {
+                                        val intent = android.content.Intent(android.provider.Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS)
+                                        context.startActivity(intent)
+                                    }
+                                }
                             )
                             GroupDivider()
                             SwitchRow(

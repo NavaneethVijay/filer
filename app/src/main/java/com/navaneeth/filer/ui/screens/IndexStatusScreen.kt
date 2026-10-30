@@ -29,6 +29,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import androidx.compose.material.icons.rounded.DeleteSweep
 import androidx.compose.material.icons.rounded.FolderOpen
 import androidx.compose.material.icons.rounded.HourglassTop
 import androidx.compose.material.icons.rounded.MoreVert
@@ -80,6 +81,7 @@ import com.navaneeth.filer.R
 import androidx.compose.material.icons.rounded.DocumentScanner
 import com.navaneeth.filer.data.model.IndexStatus
 import com.navaneeth.filer.data.model.StorageBreakdown
+import com.navaneeth.filer.data.repository.IndexProfiling
 import com.navaneeth.filer.data.repository.IndexProgress
 import com.navaneeth.filer.ui.components.GroupTitle
 import com.navaneeth.filer.ui.components.SettingRow
@@ -114,6 +116,7 @@ fun IndexStatusScreen(
     val engines by viewModel.engineCounts.collectAsState()
     var menu by remember { mutableStateOf(false) }
     var confirmRebuild by remember { mutableStateOf(false) }
+    var confirmClearIndex by remember { mutableStateOf(false) }
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
 
     // Sizes change as files are processed; refresh when a pass finishes.
@@ -139,6 +142,11 @@ fun IndexStatusScreen(
                                 text = { Text(stringResource(R.string.rebuild_index)) },
                                 leadingIcon = { Icon(Icons.Rounded.Sync, contentDescription = null) },
                                 onClick = { menu = false; confirmRebuild = true }
+                            )
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.clear_index)) },
+                                leadingIcon = { Icon(Icons.Rounded.DeleteSweep, contentDescription = null) },
+                                onClick = { menu = false; confirmClearIndex = true }
                             )
                         }
                     }
@@ -240,6 +248,16 @@ fun IndexStatusScreen(
             confirm = stringResource(R.string.rebuild_index),
             onConfirm = { haptics.confirm(); viewModel.rebuildIndex(); confirmRebuild = false },
             onDismiss = { confirmRebuild = false }
+        )
+    }
+
+    if (confirmClearIndex) {
+        ConfirmDialog(
+            title = stringResource(R.string.clear_index_title),
+            body = stringResource(R.string.clear_index_body),
+            confirm = stringResource(R.string.clear_index),
+            onConfirm = { haptics.confirm(); viewModel.clearIndex(); confirmClearIndex = false },
+            onDismiss = { confirmClearIndex = false }
         )
     }
 }
@@ -661,3 +679,5 @@ private fun ResourceMetricsCard(resources: SystemResourceUsage, indexing: Boolea
         }
     }
 }
+
+

@@ -176,7 +176,7 @@ fun FileDetailsScreen(
                 // Where a photo was taken, if Filer has read it (photo locations permission).
                 val photoPlace by produceState<String?>(null, item.uri) {
                     val path = item.pathOrNull() ?: return@produceState
-                    value = PhotoPlaces.getInstance(context).placeOf(path)
+                    value = PhotoPlaces.getInstance(context).placeOrRead(java.io.File(path))
                         ?.let { listOfNotNull(it.city, it.region.takeIf(String::isNotEmpty), it.country).distinct().joinToString(", ") }
                 }
                 val file = current.file

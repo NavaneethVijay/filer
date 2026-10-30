@@ -429,13 +429,6 @@ private fun BrowseHero(onSearch: () -> Unit, onSettings: () -> Unit, onExample: 
                         }
                     }
                     Text(date, style = ExpressiveType.Overline, color = blue.strong)
-                    Text(
-                        stringResource(R.string.browse_hero_title),
-                        style = ExpressiveType.LargeTitle,
-                        modifier = Modifier
-                            .padding(top = 6.dp)
-                            .semantics { heading() }
-                    )
                     Surface(
                         onClick = onSearch,
                         shape = ExpressiveShapes.Pill,
@@ -443,7 +436,7 @@ private fun BrowseHero(onSearch: () -> Unit, onSettings: () -> Unit, onExample: 
                         contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
                         shadowElevation = 2.dp,
                         modifier = Modifier
-                            .padding(top = 20.dp)
+                            .padding(top = 12.dp)
                             .fillMaxWidth()
                             .height(56.dp)
                     ) {

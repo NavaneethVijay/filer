@@ -25,7 +25,7 @@ class PlaceScanWorker(context: Context, params: WorkerParameters) : CoroutineWor
             val request = OneTimeWorkRequestBuilder<PlaceScanWorker>()
                 .setConstraints(Constraints.Builder().setRequiresBatteryNotLow(true).build())
                 .build()
-            WorkManager.getInstance(context).enqueueUniqueWork(WORK_NAME, ExistingWorkPolicy.KEEP, request)
+            WorkManager.getInstance(context).enqueueUniqueWork(WORK_NAME, ExistingWorkPolicy.REPLACE, request)
         }
     }
 }

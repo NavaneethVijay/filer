@@ -83,13 +83,21 @@ class SystemResourceMonitor(
         lastCpuTime = cpuTime
         lastSampleRealtime = now
 
-        // Memory
-        val runtime = Runtime.getRuntime()
-        val heapBytes = runtime.totalMemory() - runtime.freeMemory()
-        val nativeBytes = Debug.getNativeHeapAllocatedSize()
-        val appRamMb = (heapBytes + nativeBytes) / (1024 * 1024)
-        val heapMb = heapBytes / (1024 * 1024)
-        val nativeMb = nativeBytes / (1024 * 1024)
+        // Memory: Proportional Set Size (PSS) gives true physical RAM resident in hardware memory.
+        val debugMem = Debug.MemoryInfo()
+        Debug.getMemoryInfo(debugMem)
+        val totalPssKb = debugMem.totalPss
+        val (appRamMb, heapMb, nativeMb) = if (totalPssKb > 0) {
+            val total = (totalPssKb / 1024).toLong()
+            val heap = (debugMem.dalvikPss / 1024).toLong()
+            val native = (total - heap).coerceAtLeast(0)
+            Triple(total, heap, native)
+        } else {
+            val runtime = Runtime.getRuntime()
+            val heap = (runtime.totalMemory() - runtime.freeMemory()) / (1024 * 1024)
+            val native = Debug.getNativeHeapAllocatedSize() / (1024 * 1024)
+            Triple(heap + native, heap, native)
+        }
 
         val memInfo = ActivityManager.MemoryInfo()
         activityManager?.getMemoryInfo(memInfo)

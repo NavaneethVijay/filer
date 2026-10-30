@@ -159,6 +159,13 @@ class IndexViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    fun clearIndex() {
+        viewModelScope.launch {
+            indexRepo.clearEntireIndex()
+            refreshStorage()
+        }
+    }
+
     fun refreshStorage() {
         viewModelScope.launch { _storage.value = indexRepo.getStorageBreakdown() }
     }

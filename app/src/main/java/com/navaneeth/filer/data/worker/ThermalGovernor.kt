@@ -54,10 +54,13 @@ class ThermalGovernor(private val context: Context) {
      */
     suspend fun awaitCapacity(routineRests: Boolean = true): Boolean {
         var throttled = false
-        while (status() >= PowerManager.THERMAL_STATUS_SEVERE) {
+        // Thermal protection: pause if thermal status >= MODERATE or battery temp >= 40.0°C
+        if (status() >= PowerManager.THERMAL_STATUS_MODERATE || (getBatteryTempC() >= MAX_BATTERY_TEMP_C && getBatteryTempC() > 0f)) {
             throttled = true
-            _thermalMetrics.value = sampleMetrics(isThrottled = true)
-            delay(COOL_DOWN_POLL_MS)
+            while (status() >= PowerManager.THERMAL_STATUS_MODERATE || (getBatteryTempC() > RESUME_BATTERY_TEMP_C && getBatteryTempC() > 0f)) {
+                _thermalMetrics.value = sampleMetrics(isThrottled = true)
+                delay(COOL_DOWN_POLL_MS)
+            }
         }
 
         if (!routineRests) {
@@ -67,13 +70,16 @@ class ThermalGovernor(private val context: Context) {
 
         val headroom = headroom()
         val curStatus = status()
+        val temp = getBatteryTempC()
+        // Low duty-cycle pacing: 2.5s–5s cooling rests between heavy on-phone CPU inferences
+        // so the phone's chassis and vapor chamber continuously dissipate heat.
         val rest = when {
-            curStatus >= PowerManager.THERMAL_STATUS_MODERATE || headroom >= 0.85f -> 500L
-            curStatus >= PowerManager.THERMAL_STATUS_LIGHT || headroom >= 0.70f -> 150L
-            else -> 0L
+            curStatus >= PowerManager.THERMAL_STATUS_LIGHT || temp >= 39.0f || headroom >= 0.85f -> 5_000L
+            temp >= 38.0f || headroom >= 0.70f -> 3_500L
+            else -> BASE_DUTY_CYCLE_REST_MS
         }
 
-        _thermalMetrics.value = sampleMetrics(isThrottled = throttled || rest >= 400L)
+        _thermalMetrics.value = sampleMetrics(isThrottled = throttled || rest >= 4_000L)
         if (rest > 0) delay(rest)
         return throttled
     }
@@ -97,14 +103,9 @@ class ThermalGovernor(private val context: Context) {
         val currentStatus = overrideStatus ?: status()
         val currentHeadroom = headroom()
         val tempC = getBatteryTempC()
-        val label = when (currentStatus) {
-            PowerManager.THERMAL_STATUS_NONE -> if (currentHeadroom > 0.7f) "Warm" else "Normal"
-            PowerManager.THERMAL_STATUS_LIGHT -> "Warm"
-            PowerManager.THERMAL_STATUS_MODERATE -> "Hot"
-            PowerManager.THERMAL_STATUS_SEVERE -> "Severe"
-            PowerManager.THERMAL_STATUS_CRITICAL -> "Critical"
-            PowerManager.THERMAL_STATUS_EMERGENCY -> "Emergency"
-            PowerManager.THERMAL_STATUS_SHUTDOWN -> "Shutdown"
+        val label = when {
+            currentStatus >= PowerManager.THERMAL_STATUS_MODERATE || tempC >= 40.0f -> "Hot"
+            currentStatus >= PowerManager.THERMAL_STATUS_LIGHT || tempC >= 38.0f || currentHeadroom > 0.75f -> "Warm"
             else -> "Normal"
         }
         return ThermalMetrics(
@@ -112,7 +113,7 @@ class ThermalGovernor(private val context: Context) {
             statusLabel = label,
             headroom = currentHeadroom,
             batteryTempC = tempC,
-            isThrottled = isThrottled || currentStatus >= PowerManager.THERMAL_STATUS_MODERATE
+            isThrottled = isThrottled || currentStatus >= PowerManager.THERMAL_STATUS_LIGHT || (tempC >= MAX_BATTERY_TEMP_C && tempC > 0f)
         )
     }
 
@@ -126,9 +127,30 @@ class ThermalGovernor(private val context: Context) {
         }
     }
 
+    /** Whether the device is plugged into AC, USB, wireless or full power. */
+    fun isCharging(): Boolean {
+        return try {
+            val intent = context.registerReceiver(null, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
+            val plugged = intent?.getIntExtra(BatteryManager.EXTRA_PLUGGED, 0) ?: 0
+            val status = intent?.getIntExtra(BatteryManager.EXTRA_STATUS, -1) ?: -1
+            plugged != 0 || status == BatteryManager.BATTERY_STATUS_CHARGING || status == BatteryManager.BATTERY_STATUS_FULL
+        } catch (_: Throwable) {
+            false
+        }
+    }
+
     companion object {
         const val FORECAST_SECONDS = 10
         const val HEADROOM_SAMPLE_MS = 2_000L
         const val COOL_DOWN_POLL_MS = 5_000L
+
+        /** Maximum battery temperature before pausing completely (comfortable warm ceiling). */
+        const val MAX_BATTERY_TEMP_C = 40.0f
+
+        /** Temperature to cool down to before resuming after a pause. */
+        const val RESUME_BATTERY_TEMP_C = 38.5f
+
+        /** Base duty-cycle cooling rest between on-phone CPU photo inferences (ms). */
+        const val BASE_DUTY_CYCLE_REST_MS = 2_500L
     }
 }

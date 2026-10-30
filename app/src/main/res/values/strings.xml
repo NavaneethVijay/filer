@@ -147,6 +147,8 @@
     <string name="model_hardware">Model &amp; hardware</string>
     <string name="model_hardware_body">EmbeddingGemma 2 · download, pause or remove</string>
     <string name="charging_only">Index only while charging</string>
+    <string name="unrestricted_battery">Run when locked or minimized</string>
+    <string name="unrestricted_battery_body">Keeps background indexing running smoothly without battery sleep restrictions</string>
     <string name="wifi_only">Download model on Wi‑Fi only</string>
     <string name="rescan_now">Rescan folders now</string>
     <string name="clear_index">Clear search index</string>

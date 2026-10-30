@@ -11,6 +11,8 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
 
     <!-- Where photos were taken (EXIF GPS), for searches like "photos from Goa"; read on-device only -->
     <uses-permission android:name="android.permission.ACCESS_MEDIA_LOCATION" />
@@ -67,7 +69,8 @@
 
         <service
             android:name="androidx.work.impl.foreground.SystemForegroundService"
-            android:foregroundServiceType="dataSync" />
+            android:foregroundServiceType="dataSync"
+            tools:node="merge" />
 
         <!-- GPU for the AI plugins' language model (LiteRT-LM); optional, CPU is used without them. -->
         <uses-native-library
@@ -84,6 +87,15 @@
                 <action android:name="com.navaneeth.filer.action.INDEX_PAUSE" />
                 <action android:name="com.navaneeth.filer.action.INDEX_RESUME" />
                 <action android:name="com.navaneeth.filer.action.INDEX_STOP" />
+            </intent-filter>
+        </receiver>
+
+        <!-- Triggers indexing immediately upon charger plug-in without 30m idle lag -->
+        <receiver
+            android:name=".data.worker.PowerConnectionReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.ACTION_POWER_CONNECTED" />
             </intent-filter>
         </receiver>
 

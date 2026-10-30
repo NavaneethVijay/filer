@@ -50,11 +50,37 @@ interface FileDao {
     @Query("SELECT * FROM files WHERE uri = :uri LIMIT 1")
     suspend fun getFileByUri(uri: String): FileEntity?
 
-    /** Documents first (hardest to find otherwise), then photos; newest first within each. */
-    @Query("SELECT * FROM files WHERE status = 'PENDING' ORDER BY (mimeType LIKE 'image/%') ASC, modifiedAt DESC LIMIT :limit")
+    /**
+     * Multi-pass pending ordering:
+     * 1. Explicitly added smart folders (LOCAL_FOLDER) get top priority over Whole phone (DEVICE).
+     * 2. Documents first (text on GPU ~100ms, immediately searchable).
+     * 3. High-priority photos: Camera / DCIM photos, newest first.
+     * 4. Other images (downloads, chat media, screenshots), newest first.
+     */
+    @Query("""
+        SELECT files.* FROM files 
+        JOIN sources ON files.sourceId = sources.id 
+        WHERE files.status = 'PENDING' 
+        ORDER BY 
+            (sources.type = 'LOCAL_FOLDER') DESC, 
+            (files.mimeType LIKE 'image/%') ASC, 
+            (CASE WHEN files.uri LIKE '%/DCIM/%' OR files.uri LIKE '%/Camera/%' THEN 0 ELSE 1 END) ASC, 
+            files.modifiedAt DESC 
+        LIMIT :limit
+    """)
     suspend fun getPendingFiles(limit: Int): List<FileEntity>
 
-    @Query("SELECT * FROM files WHERE status = 'PENDING' AND id NOT IN (:excludeIds) ORDER BY (mimeType LIKE 'image/%') ASC, modifiedAt DESC LIMIT :limit")
+    @Query("""
+        SELECT files.* FROM files 
+        JOIN sources ON files.sourceId = sources.id 
+        WHERE files.status = 'PENDING' AND files.id NOT IN (:excludeIds) 
+        ORDER BY 
+            (sources.type = 'LOCAL_FOLDER') DESC, 
+            (files.mimeType LIKE 'image/%') ASC, 
+            (CASE WHEN files.uri LIKE '%/DCIM/%' OR files.uri LIKE '%/Camera/%' THEN 0 ELSE 1 END) ASC, 
+            files.modifiedAt DESC 
+        LIMIT :limit
+    """)
     suspend fun getPendingFilesExcluding(excludeIds: List<Long>, limit: Int): List<FileEntity>
 
     @Query("SELECT COUNT(*) FROM files WHERE status = 'PENDING'")

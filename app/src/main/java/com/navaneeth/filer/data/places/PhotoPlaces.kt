@@ -45,8 +45,7 @@ class PhotoPlaces private constructor(private val context: Context) {
         lock.withLock {
             val photos = media.photos()
             val known = dao.scanned().associate { it.path to it.modifiedAt }
-            val present = photos.mapTo(HashSet()) { it.first }
-            known.keys.filterNot { it in present }.chunked(BATCH).forEach { dao.delete(it) }
+            known.keys.filterNot { java.io.File(it).exists() }.chunked(BATCH).forEach { dao.delete(it) }
 
             val todo = photos.filter { (path, modified) -> known[path] != modified }
             if (todo.isEmpty()) return@withLock
@@ -106,10 +105,13 @@ class PhotoPlaces private constructor(private val context: Context) {
         dao.get(path)?.takeIf { it.country != null }?.let { ResolvedPlace(it.city, it.region.orEmpty(), it.country!!) }
     }
 
-    /** Where one photo was taken: the saved answer, else read from the photo now (not saved). */
+    /** Where one photo was taken: the saved answer, else read from the photo now and cache it. */
     suspend fun placeOrRead(file: java.io.File): ResolvedPlace? = placeOf(file.path) ?: withContext(Dispatchers.IO) {
         val row = read(file.path, file.lastModified(), Gazetteer.get(context))
-        row.country?.let { ResolvedPlace(row.city, row.region.orEmpty(), it) }
+        if (row.country != null) {
+            dao.upsert(listOf(row))
+            ResolvedPlace(row.city, row.region.orEmpty(), row.country)
+        } else null
     }
 
     companion object {

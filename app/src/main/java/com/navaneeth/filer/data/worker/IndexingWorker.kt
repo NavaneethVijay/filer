@@ -8,7 +8,9 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.ServiceInfo
 import android.os.Build
+import android.os.PowerManager
 import android.os.SystemClock
+import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.work.Constraints
 import androidx.work.CoroutineWorker
@@ -38,38 +40,45 @@ class IndexingWorker(
         const val NOTIFICATION_ID = 1001
         const val WORK_NAME = "filer_background_indexing"
         const val BULK_THRESHOLD = 15
+        const val KEY_USER_REQUESTED = "user_requested"
 
         /**
          * Queues an indexing pass.
          *
-         * Battery & Idle rules:
-         * - User explicit requests ("Index now") run immediately / expedited.
-         * - Bulk passes (> 15 files, full rebuild, or charging-only preference) wait for charging AND idle.
+         * Battery & Charging rules:
+         * - User explicit requests ("Index now") run immediately / expedited without caps.
+         * - Background passes or charging-only preference start as soon as connected to power.
          */
-        fun enqueue(context: Context, reindexAll: Boolean = false, userRequested: Boolean = false) {
+        fun enqueue(
+            context: Context,
+            reindexAll: Boolean = false,
+            userRequested: Boolean = false,
+            requireCharging: Boolean = false
+        ) {
             val prefs = PreferencesManager(context)
             if (reindexAll) prefs.isFullReindexPending = true
 
             val builder = OneTimeWorkRequestBuilder<IndexingWorker>()
+                .setInputData(
+                    androidx.work.Data.Builder()
+                        .putBoolean(KEY_USER_REQUESTED, userRequested)
+                        .build()
+                )
+
             if (userRequested) {
                 builder.setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
             } else {
-                val isBulk = prefs.isFullReindexPending || prefs.isChargingOnly
+                val mustCharge = requireCharging || prefs.isFullReindexPending || prefs.isChargingOnly
                 val constraints = Constraints.Builder()
                     .setRequiresBatteryNotLow(true)
-                    .setRequiresCharging(isBulk)
-                    .apply {
-                        if (isBulk) {
-                            setRequiresDeviceIdle(true)
-                        }
-                    }
+                    .setRequiresCharging(mustCharge)
                     .build()
                 builder.setConstraints(constraints)
             }
 
             WorkManager.getInstance(context).enqueueUniqueWork(
                 WORK_NAME,
-                if (userRequested) ExistingWorkPolicy.REPLACE else ExistingWorkPolicy.APPEND_OR_REPLACE,
+                ExistingWorkPolicy.REPLACE,
                 builder.build()
             )
         }
@@ -91,13 +100,12 @@ class IndexingWorker(
 
         /**
          * Every 6 hours, checks for new or changed files and embeds them.
-         * Scheduled strictly for charging and device idle periods to protect battery and thermals.
+         * Scheduled for charging periods to protect battery.
          */
         fun schedulePeriodic(context: Context) {
             val constraints = Constraints.Builder()
                 .setRequiresBatteryNotLow(true)
                 .setRequiresCharging(true)
-                .setRequiresDeviceIdle(true)
                 .build()
 
             val request = PeriodicWorkRequestBuilder<IndexingWorker>(6, TimeUnit.HOURS)
@@ -106,13 +114,29 @@ class IndexingWorker(
 
             WorkManager.getInstance(context).enqueueUniquePeriodicWork(
                 PERIODIC_WORK_NAME,
-                ExistingPeriodicWorkPolicy.KEEP,
+                ExistingPeriodicWorkPolicy.UPDATE,
                 request
             )
         }
 
         fun cancel(context: Context) {
             WorkManager.getInstance(context).cancelUniqueWork(WORK_NAME)
+        }
+    }
+
+    override suspend fun getForegroundInfo(): ForegroundInfo {
+        val notif = buildNotification(
+            title = "Preparing your files for search…",
+            content = "Indexing files in background",
+            processed = 0,
+            total = 0,
+            isPaused = false,
+            isThrottled = false
+        )
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            ForegroundInfo(NOTIFICATION_ID, notif, ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC)
+        } else {
+            ForegroundInfo(NOTIFICATION_ID, notif)
         }
     }
 
@@ -150,10 +174,25 @@ class IndexingWorker(
             // Out of quota fallback
         }
 
+        // Keep CPU awake while minimized or locked so background indexing isn't suspended by the OS kernel
+        val powerManager = applicationContext.getSystemService(Context.POWER_SERVICE) as PowerManager
+        val wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "filer:indexing_worker").apply {
+            setReferenceCounted(false)
+        }
+        try {
+            wakeLock.acquire(15 * 60 * 1000L) // 15-minute rolling window
+        } catch (e: Exception) {
+            Log.w("IndexingWorker", "WakeLock acquire: ${e.message}")
+        }
+
         var lastNotificationTime = 0L
 
         return try {
             val onProgress: (IndexProgress) -> Unit = { progress ->
+                // Refresh WakeLock while making progress so lock-screen sleep never pauses the worker
+                try {
+                    wakeLock.acquire(15 * 60 * 1000L)
+                } catch (_: Exception) {}
                 val now = SystemClock.elapsedRealtime()
                 // Throttle notification updates to at most once every 600ms unless state changed
                 if (progress.totalCount > 0 && (now - lastNotificationTime >= 600L || progress.isPaused || progress.isThermalThrottled)) {
@@ -182,20 +221,16 @@ class IndexingWorker(
                     )
 
                     try {
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                            setForegroundAsync(ForegroundInfo(NOTIFICATION_ID, updatedNotif, ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC))
-                        } else {
-                            setForegroundAsync(ForegroundInfo(NOTIFICATION_ID, updatedNotif))
-                        }
-                    } catch (_: Throwable) {
                         notificationManager.notify(NOTIFICATION_ID, updatedNotif)
-                    }
+                    } catch (_: Throwable) {}
                 }
             }
 
+            val isUserRequested = inputData.getBoolean(KEY_USER_REQUESTED, false)
             val prefs = PreferencesManager(applicationContext)
             repository.runFullIndex(
                 reindexAll = prefs.isFullReindexPending,
+                isUserRequested = isUserRequested,
                 onReset = { prefs.isFullReindexPending = false },
                 onProgress = onProgress
             )
@@ -203,6 +238,11 @@ class IndexingWorker(
         } catch (t: Throwable) {
             Result.failure()
         } finally {
+            try {
+                if (wakeLock.isHeld) {
+                    wakeLock.release()
+                }
+            } catch (_: Exception) {}
             notificationManager.cancel(NOTIFICATION_ID)
         }
     }
@@ -233,6 +273,7 @@ class IndexingWorker(
             .setContentTitle(title)
             .setContentText(content)
             .setCategory(NotificationCompat.CATEGORY_PROGRESS)
+            .setForegroundServiceBehavior(NotificationCompat.FOREGROUND_SERVICE_IMMEDIATE)
             .setSilent(true)
             .setSmallIcon(android.R.drawable.stat_notify_sync)
             .setOngoing(true)
