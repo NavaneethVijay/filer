@@ -164,40 +164,67 @@ class StorageAnalyzer private constructor(private val context: Context) {
     }
 
     /** Right after a delete or move, lists shouldn't still offer files that are gone. */
-    fun dropMissingFiles(knownGone: Set<String>? = null) = _state.update { state ->
-        state.copy(reports = state.reports.map { report ->
-            val updatedCleanups = report.cleanups.mapValues { (_, files) ->
-                files.filter { file ->
-                    if (knownGone != null && file.path in knownGone) false
-                    else File(file.path).exists()
-                }
+    fun dropMissingFiles(knownGone: Set<String>? = null) {
+        if (knownGone != null) {
+            // Pure in-memory update: drops only known-gone paths without any blocking disk I/O.
+            _state.update { state ->
+                state.copy(reports = state.reports.map { report ->
+                    val updatedCleanups = report.cleanups.mapValues { (_, files) ->
+                        files.filter { it.path !in knownGone }
+                    }
+                    val updatedDuplicates = report.duplicates
+                        ?.map { group ->
+                            group.copy(copies = group.copies.filter { it.path !in knownGone })
+                        }
+                        ?.filter { it.copies.size > 1 }
+                    val contents = report.contents
+                    val updatedContents = contents.copy(
+                        similar = contents.similar
+                            .map { group -> group.copy(others = group.others.filter { it.path !in knownGone }) }
+                            .filter { it.others.isNotEmpty() && it.keep.path !in knownGone },
+                        forwards = contents.forwards.filter { it.path !in knownGone },
+                        sensitive = contents.sensitive.filter { it.path !in knownGone }
+                    )
+                    report.copy(
+                        contents = updatedContents,
+                        cleanups = updatedCleanups,
+                        duplicates = updatedDuplicates,
+                        installedApkPaths = report.installedApkPaths.filterTo(HashSet()) { it !in knownGone }
+                    )
+                })
             }
-            val updatedDuplicates = report.duplicates
-                ?.map { group ->
-                    group.copy(copies = group.copies.filter { file ->
-                        if (knownGone != null && file.path in knownGone) false
-                        else File(file.path).exists()
+        } else {
+            // General disk check: run strictly on IO dispatcher so the UI thread is never blocked.
+            scope.launch(Dispatchers.IO) {
+                _state.update { state ->
+                    state.copy(reports = state.reports.map { report ->
+                        val updatedCleanups = report.cleanups.mapValues { (_, files) ->
+                            files.filter { File(it.path).exists() }
+                        }
+                        val updatedDuplicates = report.duplicates
+                            ?.map { group ->
+                                group.copy(copies = group.copies.filter { File(it.path).exists() })
+                            }
+                            ?.filter { it.copies.size > 1 }
+                        fun FoundFile.isGone() = !File(path).exists()
+                        val contents = report.contents
+                        val updatedContents = contents.copy(
+                            similar = contents.similar
+                                .map { group -> group.copy(others = group.others.filterNot { it.isGone() }) }
+                                .filter { it.others.isNotEmpty() && !it.keep.isGone() },
+                            forwards = contents.forwards.filterNot { it.isGone() },
+                            sensitive = contents.sensitive.filterNot { it.isGone() }
+                        )
+                        report.copy(
+                            contents = updatedContents,
+                            cleanups = updatedCleanups,
+                            duplicates = updatedDuplicates,
+                            installedApkPaths = report.installedApkPaths.filterTo(HashSet()) { File(it).exists() }
+                        )
                     })
                 }
-                ?.filter { it.copies.size > 1 }
-            fun FoundFile.isGone() = (knownGone != null && path in knownGone) || !File(path).exists()
-            val contents = report.contents
-            val updatedContents = contents.copy(
-                similar = contents.similar
-                    .map { group -> group.copy(others = group.others.filterNot { it.isGone() }) }
-                    .filter { it.others.isNotEmpty() && !it.keep.isGone() },
-                forwards = contents.forwards.filterNot { it.isGone() },
-                sensitive = contents.sensitive.filterNot { it.isGone() }
-            )
-            report.copy(
-                contents = updatedContents,
-                cleanups = updatedCleanups,
-                duplicates = updatedDuplicates,
-                installedApkPaths = report.installedApkPaths.filterTo(HashSet()) { path ->
-                    (knownGone == null || path !in knownGone) && File(path).exists()
-                }
-            )
-        })
+            }
+        }
     }
 
     companion object {

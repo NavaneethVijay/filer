@@ -170,7 +170,9 @@ class FileOpsViewModel(application: Application) : AndroidViewModel(application)
 
     fun deleteForever(ids: List<Long>) = run {
         val outcome = files.deleteForever(ids)
-        StorageAnalyzer.getInstance(getApplication()).dropMissingFiles()
+        if (outcome.paths.isNotEmpty()) {
+            StorageAnalyzer.getInstance(getApplication()).dropMissingFiles(outcome.paths.toSet())
+        }
         report(outcome, R.plurals.op_deleted)
     }
 
@@ -178,8 +180,8 @@ class FileOpsViewModel(application: Application) : AndroidViewModel(application)
     fun deleteNow(paths: List<String>) {
         if (paths.isNotEmpty()) run {
             val outcome = files.deleteNow(paths)
-            if (outcome.done > 0) {
-                StorageAnalyzer.getInstance(getApplication()).dropMissingFiles(paths.toSet())
+            if (outcome.paths.isNotEmpty()) {
+                StorageAnalyzer.getInstance(getApplication()).dropMissingFiles(outcome.paths.toSet())
             }
             report(outcome, R.plurals.op_deleted)
         }
@@ -187,7 +189,9 @@ class FileOpsViewModel(application: Application) : AndroidViewModel(application)
 
     fun emptyTrash() = run {
         val outcome = files.emptyTrash()
-        StorageAnalyzer.getInstance(getApplication()).dropMissingFiles()
+        if (outcome.paths.isNotEmpty()) {
+            StorageAnalyzer.getInstance(getApplication()).dropMissingFiles(outcome.paths.toSet())
+        }
         report(outcome, R.plurals.op_deleted)
     }
 

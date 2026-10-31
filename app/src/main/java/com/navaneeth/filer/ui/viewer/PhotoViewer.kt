@@ -185,8 +185,17 @@ private fun ViewerContent(session: ViewerSession, ai: com.navaneeth.filer.ui.vie
             // A disk check per photo: never on the main thread (a long list froze the app).
             val current = items
             val present = withContext(Dispatchers.IO) { current.filter { item -> item.pathOrNull()?.let { File(it).exists() } ?: true } }
-            if (present.size != current.size) items = present
-            if (items.isEmpty()) onClose()
+            if (present.size != current.size) {
+                if (present.isEmpty()) {
+                    onClose()
+                } else {
+                    val maxPage = present.lastIndex
+                    if (pager.currentPage > maxPage) {
+                        pager.scrollToPage(maxPage)
+                    }
+                    items = present
+                }
+            }
         }
     }
 
@@ -220,10 +229,10 @@ private fun ViewerContent(session: ViewerSession, ai: com.navaneeth.filer.ui.vie
             state = pager,
             beyondViewportPageCount = 1,
             userScrollEnabled = !zoomed,
-            key = { items[it].uri },
+            key = { items.getOrNull(it)?.uri ?: it.toString() },
             modifier = Modifier.fillMaxSize()
         ) { page ->
-            val item = items[page]
+            val item = items.getOrNull(page) ?: return@HorizontalPager
             if (item.kind == FileKind.VIDEO) {
                 VideoPlayerItem(
                     item = item,

@@ -334,7 +334,12 @@ class IndexRepository(private val context: Context) {
     }
 
     private suspend fun rowsAtOrUnder(path: String): List<FileEntity> {
-        val uri = Uri.fromFile(File(path)).toString()
+        val file = File(path)
+        val uri = Uri.fromFile(file).toString()
+        if (!file.isDirectory) {
+            val single = fileDao.getFileByUri(uri)
+            return if (single != null) listOf(single) else emptyList()
+        }
         return fileDao.getFilesAtOrUnder(uri, "$uri/")
     }
 

@@ -30,8 +30,13 @@ sealed interface NameResult {
     data object Failed : NameResult
 }
 
-/** How a batch operation went: [done] items succeeded, [failed] didn't; [ids] are new bin/locked rows. */
-data class OpOutcome(val done: Int, val failed: Int, val ids: List<Long> = emptyList())
+/** How a batch operation went: [done] items succeeded, [failed] didn't; [ids] are new bin/locked rows, [paths] are original paths touched/deleted. */
+data class OpOutcome(
+    val done: Int,
+    val failed: Int,
+    val ids: List<Long> = emptyList(),
+    val paths: List<String> = emptyList()
+)
 
 /**
  * Every change Filer makes to files: rename, new folder, copy/move, Recycle bin, Locked folder and
@@ -206,49 +211,98 @@ class FileManager private constructor(private val context: Context) {
 
     suspend fun deleteForever(ids: List<Long>): OpOutcome = op {
         var done = 0
+        val removedChanges = mutableListOf<FileChange>()
+        val removedPaths = mutableListOf<String>()
+        val originalPaths = mutableListOf<String>()
         for (item in dao.trashByIds(ids)) {
-            if (purge(item)) done++
+            val stored = File(item.storedPath)
+            val ok = !stored.exists() || try { stored.deleteRecursively() } catch (_: Exception) { false }
+            if (ok) {
+                try { stored.parentFile?.delete() } catch (_: Exception) {}
+                dao.deleteTrash(item.id)
+                pluginData.forget(item.storedPath)
+                removedChanges += FileChange.Removed(item.storedPath)
+                removedPaths += item.storedPath
+                originalPaths += item.originalPath
+                done++
+            }
         }
-        OpOutcome(done, ids.size - done)
+        if (removedChanges.isNotEmpty()) {
+            changed(removedChanges, *removedPaths.toTypedArray())
+        }
+        OpOutcome(done, ids.size - done, paths = originalPaths)
     }
 
     /** Deletes [paths] for good, skipping the Recycle bin, so their space is freed straight away. */
     suspend fun deleteNow(paths: List<String>): OpOutcome = op {
         val removed = mutableListOf<FileChange>()
+        val donePaths = mutableListOf<String>()
         for (path in paths) {
             val file = File(path)
-            if (file.exists() && file.deleteRecursively()) {
+            val ok = try {
+                if (file.exists()) file.deleteRecursively() else true
+            } catch (e: Exception) {
+                Log.w(TAG, "Failed to delete $path: ${e.message}")
+                false
+            }
+            if (ok) {
                 dao.deleteFavorite(path)
                 pluginData.forget(path)
                 removed += FileChange.Removed(path)
+                donePaths += path
             }
         }
-        changed(removed, *paths.toTypedArray())
-        OpOutcome(removed.size, paths.size - removed.size)
+        if (removed.isNotEmpty()) {
+            changed(removed, *donePaths.toTypedArray())
+        }
+        OpOutcome(donePaths.size, paths.size - donePaths.size, paths = donePaths)
     }
 
     suspend fun emptyTrash(): OpOutcome = op {
         val all = dao.allTrash()
-        val done = all.count { purge(it) }
-        OpOutcome(done, all.size - done)
+        var done = 0
+        val removedChanges = mutableListOf<FileChange>()
+        val removedPaths = mutableListOf<String>()
+        val originalPaths = mutableListOf<String>()
+        for (item in all) {
+            val stored = File(item.storedPath)
+            val ok = !stored.exists() || try { stored.deleteRecursively() } catch (_: Exception) { false }
+            if (ok) {
+                try { stored.parentFile?.delete() } catch (_: Exception) {}
+                dao.deleteTrash(item.id)
+                pluginData.forget(item.storedPath)
+                removedChanges += FileChange.Removed(item.storedPath)
+                removedPaths += item.storedPath
+                originalPaths += item.originalPath
+                done++
+            }
+        }
+        if (removedChanges.isNotEmpty()) {
+            changed(removedChanges, *removedPaths.toTypedArray())
+        }
+        OpOutcome(done, all.size - done, paths = originalPaths)
     }
 
     /** Items stay in the bin for [TRASH_DAYS] days. */
     suspend fun purgeExpiredTrash() = op {
-        dao.trashOlderThan(System.currentTimeMillis() - TimeUnit.DAYS.toMillis(TRASH_DAYS)).forEach { purge(it) }
-    }
-
-    private suspend fun purge(item: TrashEntity): Boolean {
-        val stored = File(item.storedPath)
-        val ok = !stored.exists() || stored.deleteRecursively()
-        if (ok) {
-            stored.parentFile?.delete()
-            dao.deleteTrash(item.id)
-            pluginData.forget(item.storedPath)
-            // Its parked search data goes with it.
-            changed(listOf(FileChange.Removed(item.storedPath)))
+        val expired = dao.trashOlderThan(System.currentTimeMillis() - TimeUnit.DAYS.toMillis(TRASH_DAYS))
+        if (expired.isEmpty()) return@op
+        val removedChanges = mutableListOf<FileChange>()
+        val removedPaths = mutableListOf<String>()
+        for (item in expired) {
+            val stored = File(item.storedPath)
+            val ok = !stored.exists() || try { stored.deleteRecursively() } catch (_: Exception) { false }
+            if (ok) {
+                try { stored.parentFile?.delete() } catch (_: Exception) {}
+                dao.deleteTrash(item.id)
+                pluginData.forget(item.storedPath)
+                removedChanges += FileChange.Removed(item.storedPath)
+                removedPaths += item.storedPath
+            }
         }
-        return ok
+        if (removedChanges.isNotEmpty()) {
+            changed(removedChanges, *removedPaths.toTypedArray())
+        }
     }
 
     // Locked folder

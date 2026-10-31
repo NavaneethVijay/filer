@@ -6,4 +6,6 @@
     <root-path name="volumes" path="/storage" />
     <!-- Locked folder (app-private); only ever granted for a single Open -->
     <files-path name="locked" path="locked/" />
+    <!-- App update APKs -->
+    <cache-path name="updates" path="updates/" />
 </paths>

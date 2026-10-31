@@ -36,6 +36,8 @@ class PreferencesManager(private val context: Context) {
         private const val KEY_PHOTO_TEXT_BACKGROUND = "photo_text_background"
         private const val KEY_SUGGEST_NAMES = "suggest_names"
         private const val KEY_SPEECH_LANGUAGE = "speech_language"
+        private const val KEY_LAST_UPDATE_CHECK_TIME = "last_update_check_time"
+        private const val KEY_AUTO_CHECK_UPDATES = "auto_check_updates"
         const val ACCELERATOR_AUTO = "AUTO"
         const val ACCELERATOR_CPU = "CPU"
         // 2 = Google EmbeddingGemma 2 multimodal weights; 3 = EmbeddingGemma 2 task prompts
@@ -239,6 +241,19 @@ class PreferencesManager(private val context: Context) {
             prefs.edit().putString(KEY_SPEECH_LANGUAGE, value).apply()
         }
     val speechLanguageFlow: Flow<String> get() = observe(KEY_SPEECH_LANGUAGE) { speechLanguage }
+
+    var lastUpdateCheckTime: Long
+        get() = prefs.getLong(KEY_LAST_UPDATE_CHECK_TIME, 0L)
+        set(value) {
+            prefs.edit().putLong(KEY_LAST_UPDATE_CHECK_TIME, value).apply()
+        }
+
+    var isAutoCheckUpdates: Boolean
+        get() = prefs.getBoolean(KEY_AUTO_CHECK_UPDATES, true)
+        set(value) {
+            prefs.edit().putBoolean(KEY_AUTO_CHECK_UPDATES, value).apply()
+        }
+    val autoCheckUpdatesFlow: Flow<Boolean> get() = observe(KEY_AUTO_CHECK_UPDATES) { isAutoCheckUpdates }
 
     private fun <T> observe(key: String, read: () -> T): Flow<T> = callbackFlow {
         trySend(read())

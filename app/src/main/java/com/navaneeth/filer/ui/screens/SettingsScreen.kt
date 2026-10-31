@@ -10,14 +10,22 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.selection.toggleable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.material3.Button
+import androidx.compose.material3.LinearProgressIndicator
+import com.navaneeth.filer.data.update.UpdateStatus
+import com.navaneeth.filer.ui.util.formatSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
 import androidx.compose.material.icons.rounded.Add
@@ -27,12 +35,16 @@ import androidx.compose.material.icons.rounded.Extension
 import androidx.compose.material.icons.rounded.BatteryChargingFull
 import androidx.compose.material.icons.rounded.Bolt
 import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.DeleteSweep
+import androidx.compose.material.icons.rounded.Download
 import androidx.compose.material.icons.rounded.Folder
 import androidx.compose.material.icons.rounded.Memory
 import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material.icons.rounded.Shield
 import androidx.compose.material.icons.rounded.Smartphone
+import androidx.compose.material.icons.rounded.Sync
+import androidx.compose.material.icons.rounded.SystemUpdate
 import androidx.compose.material.icons.rounded.Image
 import androidx.compose.material.icons.rounded.PictureAsPdf
 import androidx.compose.material.icons.rounded.Description
@@ -261,6 +273,13 @@ fun SettingsScreen(
                         onClick = onOpenPrivacy,
                         chevron = true
                     )
+                }
+            }
+
+            item { GroupTitle(stringResource(R.string.updates_title)) }
+            item {
+                SettingsGroup {
+                    UpdateSection(settings, versionName)
                 }
             }
 
@@ -503,5 +522,143 @@ internal fun ConfirmDialog(
             }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) } }
+    )
+}
+
+@Composable
+private fun UpdateSection(settings: SettingsViewModel, currentVersion: String) {
+    val context = LocalContext.current
+    val haptics = rememberHaptics()
+    val updateStatus by settings.updateStatus.collectAsState()
+    val autoCheck by settings.autoCheckUpdates.collectAsState()
+
+    when (val status = updateStatus) {
+        UpdateStatus.Idle -> {
+            SettingRow(
+                icon = Icons.Rounded.SystemUpdate,
+                title = stringResource(R.string.updates_check),
+                subtitle = stringResource(R.string.version_label, currentVersion),
+                onClick = { haptics.tick(); settings.checkForUpdates() }
+            )
+        }
+        UpdateStatus.Checking -> {
+            SettingRow(
+                icon = Icons.Rounded.SystemUpdate,
+                title = stringResource(R.string.updates_checking),
+                trailing = { CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp) }
+            )
+        }
+        is UpdateStatus.UpToDate -> {
+            SettingRow(
+                icon = Icons.Rounded.CheckCircle,
+                title = stringResource(R.string.updates_up_to_date, status.currentVersion),
+                subtitle = stringResource(R.string.updates_check),
+                onClick = { haptics.tick(); settings.checkForUpdates() }
+            )
+        }
+        is UpdateStatus.Available -> {
+            val release = status.release
+            val sizeStr = formatSize(context, release.apkSizeBytes)
+            Column(Modifier.padding(horizontal = 16.dp, vertical = 12.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        Icons.Rounded.SystemUpdate,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(24.dp)
+                    )
+                    Spacer(Modifier.width(16.dp))
+                    Column(Modifier.weight(1f)) {
+                        Text(
+                            text = stringResource(R.string.updates_available_title, release.versionName),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        if (release.title.isNotBlank()) {
+                            Text(
+                                text = release.title,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                }
+                Spacer(Modifier.height(12.dp))
+                Button(
+                    onClick = { haptics.confirm(); settings.downloadUpdate(release) },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Icon(Icons.Rounded.Download, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Spacer(Modifier.width(8.dp))
+                    Text(stringResource(R.string.updates_action_download, sizeStr))
+                }
+            }
+        }
+        is UpdateStatus.Downloading -> {
+            Column(Modifier.padding(horizontal = 16.dp, vertical = 12.dp)) {
+                Text(
+                    text = stringResource(R.string.updates_downloading, (status.progress * 100).toInt()),
+                    style = MaterialTheme.typography.bodyMedium
+                )
+                Spacer(Modifier.height(8.dp))
+                LinearProgressIndicator(
+                    progress = { status.progress },
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        }
+        is UpdateStatus.ReadyToInstall -> {
+            val release = status.release
+            Column(Modifier.padding(horizontal = 16.dp, vertical = 12.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        Icons.Rounded.CheckCircle,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(24.dp)
+                    )
+                    Spacer(Modifier.width(16.dp))
+                    Column(Modifier.weight(1f)) {
+                        Text(
+                            text = stringResource(R.string.updates_ready_title),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        Text(
+                            text = stringResource(R.string.updates_ready_body, release.versionName),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+                Spacer(Modifier.height(12.dp))
+                Button(
+                    onClick = { haptics.confirm(); settings.installUpdate(context, status.apkFile) },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(stringResource(R.string.updates_action_install))
+                }
+            }
+        }
+        is UpdateStatus.Failed -> {
+            SettingRow(
+                icon = Icons.Rounded.Refresh,
+                title = stringResource(R.string.updates_error),
+                subtitle = status.message,
+                onClick = { haptics.tick(); settings.checkForUpdates() }
+            )
+        }
+    }
+
+    GroupDivider()
+    SwitchRow(
+        icon = Icons.Rounded.Sync,
+        title = stringResource(R.string.updates_auto_check),
+        subtitle = stringResource(R.string.updates_auto_check_body),
+        checked = autoCheck,
+        onCheckedChange = {
+            haptics.toggle(it)
+            settings.setAutoCheckUpdates(it)
+        }
     )
 }

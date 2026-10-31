@@ -13,6 +13,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -44,7 +45,10 @@ import androidx.compose.material.icons.rounded.PhoneAndroid
 import androidx.compose.material.icons.rounded.SdCard
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material.icons.rounded.Star
+import androidx.compose.material.icons.rounded.SystemUpdate
+import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material.icons.rounded.Settings
@@ -62,8 +66,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import kotlinx.coroutines.launch
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -88,6 +94,7 @@ import com.navaneeth.filer.data.ai.TagCount
 import com.navaneeth.filer.data.analysis.CleanupKind
 import com.navaneeth.filer.data.media.MediaCategory
 import com.navaneeth.filer.data.model.DownloadState
+import com.navaneeth.filer.data.update.UpdateStatus
 import com.navaneeth.filer.data.storage.StorageVolumeInfo
 import com.navaneeth.filer.ui.components.Accent
 import com.navaneeth.filer.ui.components.ExpressiveShapes
@@ -150,6 +157,7 @@ fun BrowseScreen(
     onOpenDay: (Long) -> Unit
 ) {
     val haptics = rememberHaptics()
+    val context = LocalContext.current
     val snackbar = LocalSnackbarHostState.current
 
     val volumes by library.volumes.collectAsState()
@@ -236,6 +244,28 @@ fun BrowseScreen(
                         onPause = library::pauseSmartSearchDownload,
                         onDismiss = { haptics.tick(); library.dismissSmartSearchBanner() },
                         modifier = Modifier.padding(top = 12.dp)
+                    )
+                }
+            }
+            item(key = "updateBanner") {
+                val updateStatus by library.updateStatus.collectAsState()
+                val scope = rememberCoroutineScope()
+                AnimatedVisibility(
+                    visible = updateStatus is UpdateStatus.Available || updateStatus is UpdateStatus.ReadyToInstall || updateStatus is UpdateStatus.Downloading,
+                    enter = fadeIn() + expandVertically(),
+                    exit = fadeOut(tween(150)) + shrinkVertically(tween(300))
+                ) {
+                    UpdateBanner(
+                        status = updateStatus,
+                        onUpdate = {
+                            when (val s = updateStatus) {
+                                is UpdateStatus.Available -> scope.launch { library.updateManager.downloadUpdate(s.release) }
+                                is UpdateStatus.ReadyToInstall -> library.updateManager.installUpdate(context, s.apkFile)
+                                else -> Unit
+                            }
+                        },
+                        onOpenSettings = onOpenSettings,
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp)
                     )
                 }
             }
@@ -790,6 +820,91 @@ private fun TagChips(tags: List<TagCount>, onOpen: (String) -> Unit) {
                     Spacer(Modifier.size(6.dp))
                     Text(tag.count.toString(), style = MaterialTheme.typography.labelMedium, modifier = Modifier.alpha(0.75f))
                 }
+            }
+        }
+    }
+}
+
+@Composable
+private fun UpdateBanner(
+    status: UpdateStatus,
+    onUpdate: () -> Unit,
+    onOpenSettings: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val haptics = rememberHaptics()
+    val colors = Accent.BLUE.colors()
+
+    Surface(
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(MaterialTheme.shapes.large)
+            .clickable(onClick = { haptics.tick(); onOpenSettings() }),
+        color = colors.container,
+        shape = MaterialTheme.shapes.large
+    ) {
+        Column(Modifier.padding(16.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                ShapedIcon(
+                    icon = Icons.Rounded.SystemUpdate,
+                    shape = ExpressiveShapes.Squircle,
+                    container = colors.strong.copy(alpha = 0.12f),
+                    content = colors.strong,
+                    size = 40.dp
+                )
+                Spacer(Modifier.width(12.dp))
+                Column(Modifier.weight(1f)) {
+                    val title = when (status) {
+                        is UpdateStatus.Available -> stringResource(R.string.updates_available_title, status.release.versionName)
+                        is UpdateStatus.ReadyToInstall -> stringResource(R.string.updates_ready_title)
+                        is UpdateStatus.Downloading -> stringResource(R.string.updates_downloading, (status.progress * 100).toInt())
+                        else -> stringResource(R.string.updates_title)
+                    }
+                    Text(
+                        text = title,
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    val sub = when (status) {
+                        is UpdateStatus.Available -> status.release.title.ifBlank { stringResource(R.string.updates_auto_check_body) }
+                        is UpdateStatus.ReadyToInstall -> stringResource(R.string.updates_ready_body, status.release.versionName)
+                        else -> null
+                    }
+                    if (sub != null) {
+                        Text(
+                            text = sub,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
+                }
+                Spacer(Modifier.width(8.dp))
+                when (status) {
+                    is UpdateStatus.Available -> {
+                        Button(onClick = { haptics.confirm(); onUpdate() }) {
+                            Text(stringResource(R.string.updates_action_update))
+                        }
+                    }
+                    is UpdateStatus.ReadyToInstall -> {
+                        Button(onClick = { haptics.confirm(); onUpdate() }) {
+                            Text(stringResource(R.string.updates_action_install))
+                        }
+                    }
+                    else -> Unit
+                }
+            }
+            if (status is UpdateStatus.Downloading) {
+                Spacer(Modifier.height(8.dp))
+                LinearProgressIndicator(
+                    progress = { status.progress },
+                    modifier = Modifier.fillMaxWidth()
+                )
             }
         }
     }

@@ -27,6 +27,9 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import com.navaneeth.filer.data.worker.IndexingWorker
 import com.navaneeth.filer.data.storage.IndexKind
+import com.navaneeth.filer.data.update.AppRelease
+import com.navaneeth.filer.data.update.UpdateManager
+import com.navaneeth.filer.data.update.UpdateStatus
 
 data class IndexSummary(val ready: Int, val total: Int, val failed: Int)
 
@@ -75,6 +78,11 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
 
     val developerMode: StateFlow<Boolean> = prefs.developerModeFlow
         .stateIn(viewModelScope, SharingStarted.Eagerly, prefs.isDeveloperMode)
+
+    val updateManager = UpdateManager.getInstance(application)
+    val updateStatus: StateFlow<UpdateStatus> = updateManager.status
+    val autoCheckUpdates: StateFlow<Boolean> = prefs.autoCheckUpdatesFlow
+        .stateIn(viewModelScope, SharingStarted.Eagerly, prefs.isAutoCheckUpdates)
 
     val indexWithMac: StateFlow<Boolean> = prefs.indexWithMacFlow
         .stateIn(viewModelScope, SharingStarted.Eagerly, prefs.isIndexWithMac)
@@ -177,5 +185,25 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         viewModelScope.launch {
             indexRepo.clearEntireIndex()
         }
+    }
+
+    fun checkForUpdates() {
+        viewModelScope.launch {
+            updateManager.checkForUpdate(isManual = true)
+        }
+    }
+
+    fun downloadUpdate(release: AppRelease) {
+        viewModelScope.launch {
+            updateManager.downloadUpdate(release)
+        }
+    }
+
+    fun installUpdate(context: android.content.Context, apkFile: java.io.File) {
+        updateManager.installUpdate(context, apkFile)
+    }
+
+    fun setAutoCheckUpdates(enabled: Boolean) {
+        prefs.isAutoCheckUpdates = enabled
     }
 }

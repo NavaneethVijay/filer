@@ -21,6 +21,8 @@ import com.navaneeth.filer.data.preferences.PreferencesManager
 import com.navaneeth.filer.data.repository.IndexRepository
 import com.navaneeth.filer.data.storage.Storage
 import com.navaneeth.filer.data.storage.StorageVolumeInfo
+import com.navaneeth.filer.data.update.UpdateManager
+import com.navaneeth.filer.data.update.UpdateStatus
 import com.navaneeth.filer.data.places.PlaceScanWorker
 import com.navaneeth.filer.data.worker.IndexingWorker
 import com.navaneeth.filer.ui.model.FileUiItem
@@ -171,6 +173,9 @@ class LibraryViewModel(application: Application) : AndroidViewModel(application)
     val collectionGridView: StateFlow<Boolean> = prefs.collectionGridViewFlow
         .stateIn(viewModelScope, SharingStarted.Eagerly, prefs.isCollectionGridView)
 
+    val updateManager = UpdateManager.getInstance(application)
+    val updateStatus: StateFlow<UpdateStatus> = updateManager.status
+
     init {
         // Pick up files added or changed since the last launch; only queue model work if needed.
         viewModelScope.launch {
@@ -178,6 +183,7 @@ class LibraryViewModel(application: Application) : AndroidViewModel(application)
         }
         // Where new photos were taken (only if the user allowed photo locations).
         PlaceScanWorker.enqueue(application)
+        updateManager.checkOnLaunch(viewModelScope)
     }
 
     fun setRecentGridView(grid: Boolean) {

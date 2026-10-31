@@ -611,4 +611,21 @@
         <item quantity="one">%d file</item>
         <item quantity="other">%d files</item>
     </plurals>
+
+    <!-- App updates -->
+    <string name="updates_title">Updates</string>
+    <string name="updates_check">Check for updates</string>
+    <string name="updates_checking">Checking for updates…</string>
+    <string name="updates_up_to_date">Filer is up to date (v%1$s)</string>
+    <string name="updates_available_title">Filer v%1$s is available</string>
+    <string name="updates_ready_title">Update ready to install</string>
+    <string name="updates_ready_body">Filer v%1$s has been downloaded</string>
+    <string name="updates_action_update">Update</string>
+    <string name="updates_action_download">Download &amp; install (%1$s)</string>
+    <string name="updates_action_install">Install update</string>
+    <string name="updates_downloading">Downloading update… %1$d%%</string>
+    <string name="updates_auto_check">Check for updates automatically</string>
+    <string name="updates_auto_check_body">Checks GitHub Releases periodically when connected to the internet</string>
+    <string name="updates_error">Couldn\'t check for updates. Check your connection.</string>
+    <string name="updates_install_permission_prompt">Please allow Filer to install unknown apps in system settings to update</string>
 </resources>
